@@ -16,7 +16,8 @@ class Application(tk.Tk):
     def __init__(self,**kwargs) :
         super().__init__(**kwargs)
         self._appconfig = AppConfig()
-
+        self.settings = {}
+       
         # postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
         engine = create_engine("postgresql://postgres:admin@localhost:5432/Booking", client_encoding="utf8")
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
