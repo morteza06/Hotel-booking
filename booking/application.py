@@ -3,6 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from tkinter import ttk, messagebox
 
+from .gui.widgets import Toplevel
+
 from .db.models import Base
 from . import db 
 from . import gui
@@ -19,7 +21,7 @@ class Application(tk.Tk):
         super().__init__(**kwargs)
         self._appconfig = AppConfig()
         self.settings = {}
-       
+        self.title('Hotel Booking ')
         # postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
         engine = create_engine("postgresql://postgres:admin@localhost:5432/Booking", client_encoding="utf8",echo=True)
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -85,13 +87,13 @@ class Application(tk.Tk):
         # self.roompayment_btn.grid(row=2, column=0)
         # self.room_view_btn.grid(row=3, column=0)
 
-        self.room_form_window = None
-        self.roomadd_form = None
+        self.app_form_window = None
+        self.roomadd_form_window = None
         # self.roomselect_form = None
         # self.roompayment_form = None
 
         # self.room_view = None
-
+        
         self.preferences_form_window = None
         self.preferences_form = None
         
@@ -109,25 +111,32 @@ class Application(tk.Tk):
         finally:
             session.close()
             
-    def open_roomadd_form(self):
-        room_form_window = tk.Toplevel(self)
+    def open_roomadd_form(self, called_from=None, modal=False):
+        self.app_form_window = gui.widgets.Toplevel(self, called_from, modal)
+        if modal is True:
+            self.app_form_window.grab_set()
         self.roomadd_form = gui.forms.RoomAddForm(
-            room_form_window,
+            self.app_form_window,
             db.forms.RoomAddForm().fields,
             self.callbacks
         )
         self.roomadd_form.pack()
+        # self.app_form_window.focus()
         
         
     def on_save_room_form(self):
-        data = self.roomadd_form.get()
-        with self.session_scope() as session:
-            db.forms.RoomAddForm().save(session, data)
-        self.roomadd_form.destroy()
-            
-            
+        try:
+            data = self.roomadd_form.get()
+            self.app_form_window = gui.widgets.Toplevel(self)
+            self.app_form_window.grab_set()
+            with self.session_scope() as session:
+                new_record = db.forms.RoomAddForm().save(session, data)
+                        
+            messagebox.showinfo('Information','Record saved')
+        except NameError:
+            messagebox.showinfo('Warning','Something went wrong')
         
-        
+
         # if self.roomadd_form is None:
         #     with self.session_scope() as session:
         #         self.roomadd_form = gui.forms.RoomAddForm(
@@ -167,10 +176,6 @@ class Application(tk.Tk):
     #         self.open_room_view.grid(row=0, column=0, sticky='NSEW')
     #     else:
     #         self.open_room_view.lift()
-        
-
-            
-        
         
             
     # def on_save_room_form(self):

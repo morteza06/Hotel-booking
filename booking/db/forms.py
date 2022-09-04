@@ -49,24 +49,26 @@ class RoomAddForm:
         print(new_room)
         session.add(new_room)
         session.commit()
+        return {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, 'description': new_room.description }
         
         
 class RoomSelectForm(Form):
-    pass
-#     roomnumber = Field(label='RoomNumber')
-#     countbedroom = Field(label='CountRoom')
-#     price = Field(label='Price')
-#     description = Field(label='Description')
-
-#     def __init__(self, session, data=None):
-#         self.data = data
-#         self.session = session
-#         if not self.data:
-#             q_room = session.query(m.Room).distinct().order_by(m.Room.roomnumber)
-#             self.roomnumber.values={str(row.roomnumber): row.roomnumber for row in q_room.all()}
-#             print(self.roomnumber.values)
-#             print('RoomAddForm ==> run query')
-#         print('db.forms ==> init  RoomAddForm')
+    
+    fields = {
+        'roomnumber': {'label': 'roomnumber', 'required': True},
+        'countbedroom': {'label': 'countbedroom', 'required': True},
+        'price': {'label': 'price', 'required': True},
+        'description': {'label': 'description', 'required': True}
+    }
+    def __init__(self, session, data=None):
+        self.data = data
+        self.session = session
+        if not self.data:
+            q_room = session.query(m.Room).distinct().order_by(m.Room.roomnumber)
+            self.roomnumber.values={str(row.roomnumber): row.roomnumber for row in q_room.all()}
+            print(self.roomnumber.values)
+            print('RoomAddForm ==> run query')
+        print('db.forms ==> init  RoomAddForm')
         
         
 #     def save(self, session, data):
