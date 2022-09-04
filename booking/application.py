@@ -118,10 +118,14 @@ class Application(tk.Tk):
         )
         self.roomadd_form.pack()
         
+        
     def on_save_room_form(self):
         data = self.roomadd_form.get()
         with self.session_scope() as session:
             db.forms.RoomAddForm().save(session, data)
+        self.roomadd_form.destroy()
+            
+            
         
         
         # if self.roomadd_form is None:

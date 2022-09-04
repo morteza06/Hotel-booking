@@ -48,6 +48,7 @@ class RoomAddForm:
                             price= data['price'], description= data['description'] )
         print(new_room)
         session.add(new_room)
+        session.commit()
         
         
 class RoomSelectForm(Form):
