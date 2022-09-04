@@ -1,4 +1,3 @@
-from cgi import print_exception
 from . import models as m 
 
 class Field:
@@ -22,17 +21,56 @@ class Form:
     @property
     def fields(self):
         f = {}
-        for key, field in self._fields.items()
+        for key, field in self._fields.items():
             f[key] = vars(field)
         return f
 
-class RoomAddForm(Form):
-    roomNumber = Field(label='Room Number')
-    countbedroom = Field(label='Room Number')
-    print_exception = Field(label='Room Number')
-    description = Field(label='Room Number')
-    def __init__(self, session, data=None):
-        self.data = data
-        self.session = session
-    # have bug
-        q_add = session.query(m.Room.add())
+
+
+class RoomAddForm:
+    # roomnumber = Field(label='Room Number')
+    # countbedroom = Field(label='Room countbedroom')
+    # price = Field(label='Room price')
+    # description = Field(label='Room Description')
+    
+    # def __init__(self, session, data=None):
+    #    pass
+    
+    fields = {
+        'roomnumber': {'label': 'roomnumber', 'required': True},
+        'countbedroom': {'label': 'countbedroom', 'required': True},
+        'price': {'label': 'price', 'required': True},
+        'description': {'label': 'description', 'required': True}
+    }
+        
+    def save(self, session, data):
+        new_room =  m.Room( roomnumber= data['roomnumber'], countbedroom= data['countbedroom'],\
+                            price= data['price'], description= data['description'] )
+        print(new_room)
+        session.add(new_room)
+        
+        
+class RoomSelectForm(Form):
+    pass
+#     roomnumber = Field(label='RoomNumber')
+#     countbedroom = Field(label='CountRoom')
+#     price = Field(label='Price')
+#     description = Field(label='Description')
+
+#     def __init__(self, session, data=None):
+#         self.data = data
+#         self.session = session
+#         if not self.data:
+#             q_room = session.query(m.Room).distinct().order_by(m.Room.roomnumber)
+#             self.roomnumber.values={str(row.roomnumber): row.roomnumber for row in q_room.all()}
+#             print(self.roomnumber.values)
+#             print('RoomAddForm ==> run query')
+#         print('db.forms ==> init  RoomAddForm')
+        
+        
+#     def save(self, session, data):
+#         new_room = m.Room(roomnumber=data['roomnumber'], countbedroom=data['countbedroom'],\
+#                         price=data['price'], description=data['description'])
+#         session.add(new_room)
+#         session.commit()
+#         return {'name':new_room.roomnumber,'id':new_room.id}

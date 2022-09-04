@@ -22,6 +22,7 @@ class Base(object):
 class_registry ={}
 Base = declarative_base(cls=Base, class_registry=class_registry)
 
+
 class UserType(Base):
     __tablename__ = 'UserType'
     id = Column('UserTypeID', Integer, primary_key=True)
@@ -58,7 +59,6 @@ class Reserve(Base):
     startdate = Column('StartDate', DateTime)
     enddate = Column('EndDate', DateTime)
     pricesum = Column('PriceSum', DECIMAL)
-    
     
     def __repr__(self):
         return 'Reserve({})'.format(self.roomid)
