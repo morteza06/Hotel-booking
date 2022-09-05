@@ -27,21 +27,12 @@ class Form:
 
 
 
-class RoomAddForm:
-    # roomnumber = Field(label='Room Number')
-    # countbedroom = Field(label='Room countbedroom')
-    # price = Field(label='Room price')
-    # description = Field(label='Room Description')
-    
-    # def __init__(self, session, data=None):
-    #    pass
-    
-    fields = {
-        'roomnumber': {'label': 'roomnumber', 'required': True},
-        'countbedroom': {'label': 'countbedroom', 'required': True},
-        'price': {'label': 'price', 'required': True},
-        'description': {'label': 'description', 'required': True}
-    }
+class RoomAddForm(Form):
+
+    roomnumber = Field(label='roomnumber')
+    countbedroom = Field(label='countbedroom')
+    price = Field(label='price')
+    description = Field(label='description')
         
     def save(self, session, data):
         new_room =  m.Room( roomnumber= data['roomnumber'], countbedroom= data['countbedroom'],\
@@ -54,21 +45,23 @@ class RoomAddForm:
         
 class RoomSelectForm(Form):
     
-    fields = {
-        'roomnumber': {'label': 'roomnumber', 'required': True},
-        'countbedroom': {'label': 'countbedroom', 'required': True},
-        'price': {'label': 'price', 'required': True},
-        'description': {'label': 'description', 'required': True}
-    }
-    def __init__(self, session, data=None):
+    # id = Field(label='id')
+    roomnumber = Field(label='roomnumber')
+    # countbedroom = Field(label='countbedroom')
+    # price = Field(label='price')
+    # description = Field(label='description')
+  
+    def __init__(self, session, data, **kwargs):
         self.data = data
+        print(self.data)
         self.session = session
-        if not self.data:
-            q_room = session.query(m.Room).distinct().order_by(m.Room.roomnumber)
-            self.roomnumber.values={str(row.roomnumber): row.roomnumber for row in q_room.all()}
-            print(self.roomnumber.values)
-            print('RoomAddForm ==> run query')
+        q_room = session.query(m.Room)
+        self.values ={['id'][row.id]:['roomnumber'][row.roomnumber] for row in q_room.all()}
+        print(self.values,"*/*/*/*")
+        data = self.values 
+        print('RoomAddForm ==> run query')
         print('db.forms ==> init  RoomAddForm')
+        return None
         
         
 #     def save(self, session, data):

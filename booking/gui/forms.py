@@ -31,7 +31,6 @@ class RoomAddForm(tk.Frame):
         # self.close_btn = ttk.Button(self, text='Close',
         #                            command=self.callbacks['on_close_Toplevel'])
                                    
-        
         # Layout
         self.roomnumber_label.grid(column=0, row=0)
         self.input['roomnumber'].grid(column=1, row=0)
@@ -41,92 +40,34 @@ class RoomAddForm(tk.Frame):
         self.input['price'].grid(column=1, row=2)
         self.description_label.grid(column=0, row=3)
         self.input['description'].grid(column=1, row=3)
-        self.save_btn.grid(column=0, row=4)
+        self.save_btn.grid(column=1, row=4)
         # self.close_btn.grid(column=1, row=4)
-        
         
     def get(self)-> dict:
         data = {
+            # 'id':self.id_var.get(),
             'roomnumber': self.roomnumber_var.get(),
             'countbedroom': self.countbedroom_var.get(),
             'price':self.price_var.get(),
             'description':self.description_var.get()
         }
         return data
-
     def on_roomadd_saved(self):
         print('somone saved a Room add ')
         
-        
-
-# class RoomSelectForm(tk.Frame):
-#     def __init__(self, parent, fields, callbacks, *args, **kwargs):
-#         super().__init__(parent, **kwargs)
-#         self.callbacks = callbacks
-#         self.fields = {}
-#         # Labels
-#         self.roomnumber_label = ttk.Label(self, text=fields['Roomnumber']['label'])
-#         # Lookups and input
-#         self.room_lookups = fields['id']['values']
-        
-#         ttk.Combobox(self, values=['', *sorted(self.qry_roomnumber)])
-        
-#         self.fields['roomnumber'].bind('<<ComboboxSelected>>', self.on_roomnumber_selected)
-        
-#         self.name_var = tk.StringVar()
-#         self.save_btn = ttk.Button(self, text='close', command=self.callbacks['on_save_roommodel_form'])
-#         # Layout
-#         self.save_btn.grid(column=1, row=2)
-
-        # Bindings
-        # def 
-        
-        # Layout
+class RoomSelectForm(tk.Frame):
+    def __init__(self, parent, fields, callbacks, *args, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.callbacks = callbacks
+        # self.fields = {}
+        # Labels
+        self.roomnumber_label = ttk.Label(self, text=fields['roomnumber']['label'])\
+                                        .grid(column=0, row=1)
+        self.selected_room = tk.StringVar(self)
+        self.roomnumber_combo = ttk.Combobox(self, values=fields['roomnumber']['label'], 
+                                            textvariable=self.selected_room,
+                                            state='readonly',
+                                            width=80).grid(column=0, row=2)
     
     
-    # def get(self):
-    #     roomnumber = self.fields['roomnumber'].get()
-    #     roomnumber_id = self.roomnumber_lookups[roomnumber]
-    #     price = self.fields['price'].get()
-    #     data = {'room_id':roomnumber_id, 'price':price}
-        
-        
-# class RoomCalcForm(tk.Frame):
-#     def __init__(self, parent, fields, callbacks, *args, **kwargs):
-#         super().__init__(parent, **kwargs)
-#         self.callbacks = callbacks
-#         self.fields = {}
-        
-
-#         # Bindings
-        
-        
-#         # Layout
-    
-    
-# class RoomModelForm(tk.Frame):
-#     def __init__(self, parent, fields, callbacks, *args, **kwargs):
-#         super().__init__(parent, **kwargs)
-#         self.callbacks = callbacks
-#         self.fields = {}
-        # Input
-        
-        
-        
-        
-        # Layout
-        
-        
-        # self.fields['roomnumber'] = w.FormField(self, fields['roomnumber'], widget_cls=w.Combobox,
-                                                #   input_kwargs={'lookups': self.roomnumber_lookups})
-        #   self.roomnumber_lookups = fields['roomnumber']['values']
-        # Bindings
-        # self.input['roomnumber'].input.bind('<<ComboboxSelected>>', self.on_roomnumber_selected)
-        
-        
-    # def on_roomnumber_selected(self, event):
-    #     roomnum = self.fields['roomnumber'].get()
-    #     reserve_lookups = self.callbacks['filter_room_by_reserve'](roomnum)
-    #     self.fields['reserve'].lookups = reserve_lookups
-    #     self.fields['reserve'].input.configure(values=['', *sorted(reserve_lookups)])
-    #     self.fields['reserve'].input.set('')
+   

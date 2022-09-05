@@ -1,6 +1,8 @@
 from contextlib import contextmanager
+from dataclasses import field, fields
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import tkinter as tk
 from tkinter import ttk, messagebox
 
 from .gui.widgets import Toplevel
@@ -11,21 +13,22 @@ from . import gui
 from . import menus
 from .config import AppConfig
 
-import tkinter as tk
 
 from sqlalchemy.ext.declarative import declarative_base 
 
 
 class Application(tk.Tk):
-    def __init__(self,**kwargs) :
-        super().__init__(**kwargs)
+    def __init__(self, *args ,**kwargs) :
+        tk.Tk.__init__(self, *args, **kwargs)
         self._appconfig = AppConfig()
         self.settings = {}
         self.title('Hotel Booking ')
         # postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
+        global engine 
         engine = create_engine("postgresql://postgres:admin@localhost:5432/Booking", client_encoding="utf8",echo=True)
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        # for first run first create database=Booking and run this code for create model 
+        
+        # At first run please create database Booking Schema and run this code for create model 
         # Base.metadata.create_all(engine)  
         
         self.callbacks = {
@@ -37,9 +40,9 @@ class Application(tk.Tk):
             
             
             'open_roomadd_form':self.open_roomadd_form,
-            # 'open_roomselect_form':self.open_roomselect_form,
+            'open_roomselect_form':self.open_roomselect_form,
             # 'open_roompayment_form':self.open_roompayment_form,
-            # 'open_room_view': self.open_room_view,
+            'open_room_view': self.open_room_view,
             'on_save_room_form': self.on_save_room_form,
             
             # 'open_vehicleasset_form': self.open_vehicleasset_form,
@@ -74,25 +77,25 @@ class Application(tk.Tk):
         
         self.roomadd_btn = ttk.Button(self.left_nav_frame, text='Add new a Room',
                                           command=self.callbacks['open_roomadd_form'])
-        # self.roomselect_btn = ttk.Button(self.left_nav_frame, text='Select the Room',
-        #                                   command=self.callbacks['open_roomselect_form'])
+        self.roomselect_btn = ttk.Button(self.left_nav_frame, text='Select the Room',
+                                          command=self.callbacks['open_roomselect_form'])
         # self.roompayment_btn = ttk.Button(self.left_nav_frame, text='payment Room',
         #                                   command=self.callbacks['open_roompayment_form'])
-        # self.room_view_btn = ttk.Button(self.left_nav_frame, text='View Rooms Records',
-        #                                   command=self.callbacks['open_room_view'])
+        self.room_view_btn = ttk.Button(self.left_nav_frame, text='View Rooms Records',
+                                          command=self.callbacks['open_room_view'])
         
         
         self.roomadd_btn.grid(row=0, column=0)
-        # self.roomselect_btn.grid(row=1, column=0)
+        self.roomselect_btn.grid(row=1, column=0)
         # self.roompayment_btn.grid(row=2, column=0)
-        # self.room_view_btn.grid(row=3, column=0)
+        self.room_view_btn.grid(row=3, column=0)
 
         self.app_form_window = None
         self.roomadd_form_window = None
-        # self.roomselect_form = None
+        self.roomselect_form = None
         # self.roompayment_form = None
 
-        # self.room_view = None
+        self.room_view = None
         
         self.preferences_form_window = None
         self.preferences_form = None
@@ -114,15 +117,17 @@ class Application(tk.Tk):
     def open_roomadd_form(self, called_from=None, modal=False):
         self.app_form_window = gui.widgets.Toplevel(self, called_from, modal)
         if modal is True:
+            # print('is modal')
             self.app_form_window.grab_set()
         self.roomadd_form = gui.forms.RoomAddForm(
             self.app_form_window,
             db.forms.RoomAddForm().fields,
-            self.callbacks
+            self.callbacks,
+            # print('Obj.roomadd_form init')
         )
-        self.roomadd_form.pack()
+        self.roomadd_form.pack(fill='x', expand=True)
+        # print(self.roomadd_form)
         # self.app_form_window.focus()
-        
         
     def on_save_room_form(self):
         try:
@@ -136,46 +141,30 @@ class Application(tk.Tk):
         except NameError:
             messagebox.showinfo('Warning','Something went wrong')
         
+    def open_roomselect_form(self, called_from=None, modal=False):
+        self.app_form_window = gui.widgets.Toplevel(self,called_from, modal)
+        if modal is True:
+            self.app_form_window.grab_set()
+        with self.session_scope() as session:
+            self.roomselect_form = gui.forms.RoomSelectForm(
+                self.app_form_window,
+                db.forms.RoomSelectForm(session=session, data=None).fields,
+                self.callbacks,
+        )
+        self.roomselect_form.pack(fill='x', expand=True)
+        self.app_form_window.focus()
 
-        # if self.roomadd_form is None:
-        #     with self.session_scope() as session:
-        #         self.roomadd_form = gui.forms.RoomAddForm(
-        #             self.workspace_frame,
-        #             db.forms.RoomAddForm(session).fields,
-        #             print('app:open_add_form'),
-        #             self.callbacks,
-        #         )
-        #     self.roomadd_form.grid(row=0, column=0, sticky='NSEW')
-        # else:
-        #     self.roomadd_form.lift() 
-            
-        
-    # def open_roomselect_form(self, called_from=None, modal=False):
-    #     self.room_form_window = gui.widgets.Toplevel(self, called_from, modal)
-    #     if modal is True:
-    #         self.room_form_window.grab_set()
-    #     self.roomselect_form = gui.forms.RoomSelectForm(
-    #         self.room_form_window,
-    #         db.forms.RoomSelectForm(self).fields,
-    #         self.callbacks
-    #     )
-    #     self.roomselect_form.pack()
-    #     self.room_form_window.focus()
-    
-    # def open_roompayment_form(self, called_from=None, modal=False):
-    #     pass
-
-    # def open_room_view(self):
-    #     if self.room_view is None:
-    #         with self.session_scope() as session:
-    #             self.room_view = gui.views.Room_View(
-    #                 self.workspace_frame,
-    #                 db.queries.qry_room_view(session),
-    #                 self.callbacks
-    #             )
-    #         self.open_room_view.grid(row=0, column=0, sticky='NSEW')
-    #     else:
-    #         self.open_room_view.lift()
+    def open_room_view(self):
+        if self.room_view is None:
+            with self.session_scope() as session:
+                self.room_view = gui.views.Room_View(
+                    self.workspace_frame,
+                    db.queries.qry_room_view(session),
+                    self.callbacks
+                )
+            self.room_view.grid(row=0, column=0, sticky='NSEW')
+        else:
+            self.room_view.lift()
         
             
     # def on_save_room_form(self):

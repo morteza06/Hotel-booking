@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, \
+from sqlalchemy import Column, Integer, String, DATE, \
      ForeignKey, DECIMAL, Numeric,Table
 from sqlalchemy.orm import  relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -56,8 +56,8 @@ class Reserve(Base):
     id = Column('ReserveID', Integer, primary_key=True)
     roomid = Column('Room_ID', Integer, ForeignKey('Room.RoomID'))
     personid = Column('Person_ID', Integer, ForeignKey('Person.PersonID'))
-    startdate = Column('StartDate', DateTime)
-    enddate = Column('EndDate', DateTime)
+    startdate = Column('StartDate', DATE)
+    enddate = Column('EndDate', DATE)
     pricesum = Column('PriceSum', DECIMAL)
     
     def __repr__(self):

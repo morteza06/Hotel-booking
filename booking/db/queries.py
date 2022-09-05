@@ -3,7 +3,7 @@ from . import models as m
 
 def qry_room_view(session):
     query = session.query(
-        m.Room.id.label('room_id'),
+        m.Room.id.label('id'),
         m.Room.roomnumber.label('roomnumber'),
         m.Room.countbedroom.label('countbedroom'),
         m.Room.price.label('price'),
@@ -13,10 +13,12 @@ def qry_room_view(session):
         m.Reserve.enddate.label('enddate'),
         m.Reserve.pricesum.label('pricesum'),
         )
+    # query = query.select_from(m.Room)
     query = query.select_from(m.Room).join(m.Reserve)
     result = {
-         row.room_id:
-                {'roomnumber':row.roomnumber ,
+         row.id:
+                {'id':row.id ,
+                'roomnumber':row.roomnumber ,
                 'countbedroom':row.countbedroom,
                 'price': row.price,
                 'description': row.description ,
@@ -26,6 +28,7 @@ def qry_room_view(session):
                 'pricesum': row.pricesum ,
                 } for row in query.all()
         }
+    print(result)
     return result
 
 
