@@ -13,9 +13,6 @@ class Room_View(tk.Frame):
         
         self.treeview = ttk.Treeview(self, columns=columns, height=10,show='headings')
         
-        
-   
-        
         self.treeview.heading(column='#1', text=' ID ')
         self.treeview.column("#1", minwidth=0, width=30, stretch=False)
         
@@ -53,3 +50,4 @@ class Room_View(tk.Frame):
             self.treeview.insert('', 'end', iid=key, open=False, text='Room ID: {}'.format(key),
                                 values =[ record['id'], record['roomnumber'], record['countbedroom'], record['price'],\
                                 record['description'], record['personid'],  record['startdate'], record['enddate'], record['pricesum']])   
+   

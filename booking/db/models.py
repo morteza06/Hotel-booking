@@ -60,8 +60,6 @@ class Reserve(Base):
     enddate = Column('EndDate', DATE)
     pricesum = Column('PriceSum', DECIMAL)
     
-    def __repr__(self):
-        return 'Reserve({})'.format(self.roomid)
 
 class Room(Base):
     __tablename__ = 'Room'
