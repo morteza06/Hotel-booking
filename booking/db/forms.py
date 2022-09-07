@@ -1,13 +1,13 @@
 from . import models as m 
-
+"""" Gol of this desing
+    difine meta data ; model, fields, field_class   define some query
+"""
 class Field:
-    def __init__(self, default=None, disable=False, initial=None, label=None, required=True, values=None ):
-        self.default = default
-        self.disable = disable
-        self.initial = initial
+    def __init__(self,  label=None, required=True, values=None ):
         self.label = label
         self.required = required
         self.values = values or {}
+       
 
 class Form:
     def __new__(cls, *args, **kwargs):
@@ -19,12 +19,11 @@ class Form:
     
     
     @property
-    def fields(self):
+    def fields(self)->dict:
         f = {}
         for key, field in self._fields.items():
             f[key] = vars(field)
         return f
-
 
 
 class RoomAddForm(Form):
@@ -40,21 +39,31 @@ class RoomAddForm(Form):
         print(new_room)
         session.add(new_room)
         session.commit()
-        return {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, \
-                'description': new_room.description }
+        return 
+    # {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, \
+                # 'description': new_room.description }
        
 class SearchForm(Form):
+    roomnumber = Field(label='roomnumber')
+    countbedroom = Field(label='countbedroom')
+    price = Field(label='price')
+    description = Field(label='description')
+    
     searchtext = Field(label='searchtext')
     searchby = Field(label='searchby')
         
-    def search(self, session, data, searchby):
-        print('Save in SearchForm===========')
-        # self.Search
-        # qr = session.query(Room).\
-        #         filter(Room.searchby == )
-        # print(new_room)
-        # session.add(new_room)
-        # session.commit()
+    from tkinter import messagebox
+
+    def search(self,session,data):
+        print(self.fields.get('searchtext'))
+        if self.fields.get('searchby') == '':
+            self.messagebox.showinfo('Information','Please Insert text for search ')
+        if self.fields.get('searchtext') == '':
+            self.messagebox.showinfo('Information','Please Select  search type ')
+            # print(data.items())
+            print('========',data['searchby']['values'].get())
+            Qsearch = session.query(m.Room).filter(m.Room.roomnumber == self.fields.get('searchby'))
+        return  
         # return {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, 'description': new_room.description }
        
 class ReserveInfoAddForm(Form):

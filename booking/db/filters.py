@@ -9,3 +9,4 @@ def filter_room_by_reserve(session, reserve_id, roomnumber=None):
                     join(m.Reserve.id)
         query = query.filter(m.Reserve.id == roomnumber)
     return {row.name: row.id for row in query.all()}
+

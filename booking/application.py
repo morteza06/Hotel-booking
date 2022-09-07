@@ -5,8 +5,6 @@ from sqlalchemy.orm import sessionmaker
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-
-from .db.models import Base
 from . import db 
 from . import gui
 from . import menus
@@ -35,13 +33,14 @@ class Application(tk.Tk):
             'settings--preferences': self.open_preferences,
             'settings--preferences--update': self.update_preferences,
             'settings--preferences': self.open_preferences,
-            # 'filter_clemake_by_vehicleyear': self.filter_room_by_reserve,
+            # 'filter_search': self.filter_search,
             
             
             'open_roomadd_form':self.open_roomadd_form,
             'open_reserveinfoadd_form':self.open_reserveinfoadd_form,
             'open_roomselect_form':self.open_roomselect_form,
             'open_search_form':self.open_search_form,
+            
             # 'open_roompayment_form':self.open_roompayment_form,
             'open_room_view': self.open_room_view,
             'on_save_room_form': self.on_save_room_form,
@@ -132,7 +131,7 @@ class Application(tk.Tk):
             with self.session_scope() as session:
                 self.search_form = gui.forms.SearchForm(
                     self.workspace_frame,
-                    db.forms.SearchForm().fields,
+                    db.forms.SearchForm(self).fields,
                     self.callbacks,
                 )
             self.search_form.grid(row=0, column=0, sticky='NSEW')
@@ -140,15 +139,22 @@ class Application(tk.Tk):
             self.search_form.lift()
             
     def on_search_form(self):
-        print('on_search_form')
-
-    
+        try:
+            data = self.search_form.get()
+            with self.session_scope() as session:
+                list_search = db.forms.SearchForm().search(session, data)
+                
+                # self.search_form = gui.forms.SearchForm().show(session)
+            messagebox.showinfo('Information','Search complete')
+        except NameError:
+            messagebox.showinfo('Warning','Input type have a fault.')
+            
     def open_roomadd_form(self):
         if self.roomadd_form is None:
             with self.session_scope() as session:
                 self.roomadd_form = gui.forms.RoomAddForm(
                     self.workspace_frame,
-                    db.forms.RoomAddForm().fields,
+                    db.forms.RoomAddForm(session).fields,
                     self.callbacks,
                 )
             self.roomadd_form.grid(row=0, column=0, sticky='NSEW')
@@ -158,12 +164,13 @@ class Application(tk.Tk):
     def on_save_room_form(self):
         try:
             data = self.roomadd_form.get()
+            print(data)
             with self.session_scope() as session:
                 new_record = db.forms.RoomAddForm().save(session, data)
             messagebox.showinfo('Information','Record saved')
         except NameError:
             messagebox.showinfo('Warning','Something went wrong')
-    
+            
     def open_reserveinfoadd_form(self):
         if self.reservinfoadd_form is None:
             with self.session_scope() as session:
@@ -184,7 +191,6 @@ class Application(tk.Tk):
             messagebox.showinfo('Information','Record saved')
         except NameError:
             messagebox.showinfo('Warning','Something went wrong')
-            
             
     def open_roomselect_form(self, called_from=None, modal=False):
         self.app_form_window = gui.widgets.Toplevel(self,called_from, modal)
@@ -226,3 +232,7 @@ class Application(tk.Tk):
     def update_preferences(self):
         data = self.preferences_form.appearance_frame.get()
         self._appconfig.update_settings(data)
+
+    # def filter_search(self):
+    #     with self.session_scope() as session:
+    #         return db.filters.filter_search(session)

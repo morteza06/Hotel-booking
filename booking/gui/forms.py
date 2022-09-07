@@ -1,6 +1,6 @@
+from dataclasses import field
 from tkinter import ttk
 import tkinter as tk
-# from . import widgets as w
 
 class RoomAddForm(tk.Frame):
     def __init__(self, parent, fields, callbacks, *args, **kwargs):
@@ -38,9 +38,7 @@ class RoomAddForm(tk.Frame):
         self.input['price'].grid(column=1, row=2)
         self.description_label.grid(column=0, row=3)
         self.input['description'].grid(column=1, row=3)
-        self.save_btn.grid(column=1, row=4)
-        # self.close_btn.grid(column=1, row=4)
-        
+        self.save_btn.grid(column=1, row=4)        
     def get(self)-> dict:
         data = {
             # 'id':self.id_var.get(),
@@ -153,51 +151,59 @@ class RoomSelectForm(tk.Frame):
                                             width=80).grid(column=0, row=2)
     
 class SearchForm(tk.Frame):
-    def __init__(self, parent, fields, callbacks, *args, **kwargs):
-        super().__init__(parent, **kwargs)
-        
+    def __init__(self, parent, fields, callbacks):
+        super().__init__(parent)
         self.callbacks = callbacks
-        self.input = {}
-        self.Search_By = None
+        self.fields = fields
+        self.fields.clear()
+        print('===>',self.fields.items())
         # Input =>Text for Search 
         self.searchtxt_label = ttk.Label(self, text='Insert Text for search:')
         self.searchtxt_var = tk.StringVar()
-        self.input['searchtext'] = ttk.Entry(self, textvariable= self.searchtxt_var)
+        self.searchtext = ttk.Entry(self, textvariable= self.searchtxt_var)
         # Labels
         self.searchby_label = ttk.Label(self, text='Select this Field for search:')
         self.selected_search_var = tk.StringVar(self)
-        self.search_combo = ttk.Combobox(self, values=fields['searchby']['label'], 
-                                            textvariable=self.selected_search_var,
-                                            state='readonly',width=150)
-        self.search_combo.bind('<<ComboboxSelected>>', self.on_searchby_selected)
-        self.search_combo['values']= ('Room_Number','Count_Bedroom_exists','Price')
-        self.search_combo.current(0) #set the selected item
-
-        # Select => field for search
+        self.searchby = ttk.Combobox(self,textvariable=self.selected_search_var,
+                                    state='readonly',width=20)
+        self.searchby.bind('<<ComboboxSelected>>', self.on_searchby_selected)
+        self.searchby['values']=('','roomnumber','countbedroom','price')
+        self.searchby.current(0) #set the selected item
+        
         self.save_btn = ttk.Button(self, text='      Search     ',
                                    command=self.callbacks['on_search_form'])
         # Layout
-        self.searchby_label.grid(column=0, row=0)
-        self.search_combo.grid(column=1, row=0)
-        self.searchtxt_label.grid(column=0, row=1)
-        self.input['searchtext'].grid(column=1, row=1)
+        self.searchtext.grid(column=1, row=0)
+        self.searchtxt_label.grid(column=0, row=0)
+        self.searchby_label.grid(column=0, row=1)
+        self.searchby.grid(column=1, row=1)
 
         self.save_btn.grid(column=1, row=4)
         
+        self.fields['searchby']='label'#  add to dict
+        self.fields[str(self.searchby.get())]=['values']
+        self.fields['searchtext']='label'
+        self.fields[str(self.searchtext.get())]=['values']
+        # self.fields[ ]='values'
+        # print('=>>>>>',self.searchtext.get())
     def on_searchby_selected(self, event):
-        return (self.search_combo.get())
+        self.fields.clear()#empty dictionary
+        self.fields['searchby']='label'#  add to dict
+        self.fields[str(self.searchby.get())]='values'
+        self.fields['searchtext']='label'
+        self.fields[str(self.searchtext.get())]='values'
+        
+        print('=>>>>>',self.searchtext.get())
+        print('=>>>>>',self.searchby.get())
+        
+        # self.fields[ ]='values'
         
     def get(self)-> dict:
-        data = {
-            # 'id':self.id_var.get(),
-            'searchby':self.selected_search_var,
-            'searchtext':self.searchtxt_var,
-        }
+        data = self.fields
         return data
-    
     def reset(self):
         self.searchtext_var = None
         
-    def on_roomadd_saved(self):
-        print('somone saved a Room add ')       
-   
+    def show(self):
+        pass
+    
