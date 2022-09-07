@@ -195,34 +195,16 @@ class SearchForm(tk.Frame):
         self.fields['searchby']='label'#  add to dict
         self.fields[searchby_var]='values'
         
-        print('=>>>>>',self.searchtext.get())
-        print('=>>>>>',self.searchby.get())
-        
-        # self.fields[ ]='values'
-        
     def get(self)-> dict:
-        print('fields1===',self.fields.items())
-        data = self.fields.items()
+        data = self.fields
         searchtext_var = str(self.searchtext.get())
         searchby_var = str(self.searchby.get())
-        print('get===',searchtext_var)
-        print('get===',searchby_var)
-        
-        # self.fields.clear()#empty dictionary
-        # self.fields['searchtext']='label'
-        # self.fields[searchtext_var]='values'
-        # self.fields['searchby']='label'#  add to dict
-        # self.fields[searchby_var]='values'
-        print('fields2===',self.fields.items())
-        print('fields2===',type(data))
-        
         return data
     def reset(self)->None:
         searchtext_var=''
         searchby_var=''
         self.searchtext.delete(0,'end')
         self.searchby.current(0)
-        
     def show(self):
         pass
     

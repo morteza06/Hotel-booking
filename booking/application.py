@@ -137,6 +137,7 @@ class Application(tk.Tk):
     def on_search_form(self):
         try:
             data = self.search_form.get()
+            print(type(data))
             self.search_form.reset()
             with self.session_scope() as session:
                 list_search = db.forms.SearchForm().search(session, data)
