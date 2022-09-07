@@ -1,4 +1,3 @@
-from dataclasses import field
 from tkinter import ttk
 import tkinter as tk
 
@@ -161,7 +160,7 @@ class SearchForm(tk.Frame):
         self.callbacks = callbacks
         self.fields = fields
         self.fields.clear()
-        print('===>',self.fields.items())
+
         # Input =>Text for Search 
         self.searchtxt_label = ttk.Label(self, text='Insert Text for search:')
         self.searchtxt_var = tk.StringVar()
@@ -177,14 +176,54 @@ class SearchForm(tk.Frame):
         
         self.save_btn = ttk.Button(self, text='      Search     ',
                                    command=self.callbacks['on_search_form'])
+        
+        # label
+        self.labelheader = ttk.Label(text='        Search Result', font=('impact', 14))
+        
+        # viewtree widget
+        columns = ('id','ًroomnumber', 'countbedroom', 'price','description', 'personid', 'startdate', 'enddate', 'pricesum')
+        
+        self.treeview = ttk.Treeview(self, columns=columns, height=10,show='headings')
+        
+        self.treeview.heading(column='#1', text=' ID ')
+        self.treeview.column("#1", minwidth=0, width=30, stretch=False)
+        
+        self.treeview.heading(column='#2', text='Room Number')
+        self.treeview.column("#2", minwidth=0, width=100, stretch=False)
+        
+        self.treeview.heading(column='#3', text='Count Bedroom',anchor=tk.CENTER)
+        self.treeview.column("#3", minwidth=0, width=100, stretch=True)
+        
+        self.treeview.heading(column='#4', text='Price')
+        self.treeview.column("#4", minwidth=0, width=80, stretch=False)
+        
+        self.treeview.heading(column='#5', text='Description')
+        self.treeview.column("#5", minwidth=0, width=200, stretch=True)
+        
+        self.treeview.heading(column='#6', text='Person Id')
+        self.treeview.column("#6", minwidth=0, width=80, stretch=False)
+        
+        self.treeview.heading(column='#7', text='Start Date')
+        self.treeview.column("#7", minwidth=0, width=80, stretch=False)
+        
+        self.treeview.heading(column='#8', text='End Date')
+        self.treeview.column("#8", minwidth=0, width=80, stretch=False)
+        
+        self.treeview.heading(column='#9', text='Price Summerize')
+        self.treeview.column("#9", minwidth=0, width=130, stretch=False)
+        
         # Layout
-        self.searchtext.grid(column=1, row=0)
-        self.searchtxt_label.grid(column=0, row=0)
-        self.searchby_label.grid(column=0, row=1)
-        self.searchby.grid(column=1, row=1)
+        
+        # Layout
+        self.searchtxt_label.grid(column=1, row=0)
+        self.searchtext.grid(column=2, row=0)
+        self.searchby_label.grid(column=1, row=1)
+        self.searchby.grid(column=2, row=1)
 
-        self.save_btn.grid(column=1, row=4)
+        self.save_btn.grid(column=2, row=4)
 
+        self.labelheader.grid(column=0, row=5, sticky='ensw' )
+        self.treeview.grid(column=0, row=6)
     def on_searchby_selected(self, event):
         searchtext_var = str(self.searchtext.get())
         searchby_var = str(self.searchby.get())

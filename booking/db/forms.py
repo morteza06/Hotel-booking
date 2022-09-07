@@ -3,9 +3,9 @@ from . import models as m
     difine meta data ; model, fields, field_class   define some query
 """
 class Field:
-    def __init__(self,  label=None, required=True, values=None ):
+    def __init__(self,  label=None, required=True, value=None ):
         self.label = label
-        self.values = values or {}
+        self.value = value
        
 
 class Form:
@@ -54,13 +54,14 @@ class SearchForm(Form):
     from tkinter import messagebox
 
     def search(self,session,data):
-        print(self.fields.get('searchtext'))
+        # print(data['searchtext']['values'])
+        print(data.items())
         if self.fields.get('searchby') == '':
             self.messagebox.showinfo('Information','Please Insert text for search ')
         if self.fields.get('searchtext') == '':
             self.messagebox.showinfo('Information','Please Select  search type ')
             # print(data.items())
-            print('========',data['searchby']['values'].get())
+            print('========',data['searchby'].get())
             Qsearch = session.query(m.Room).filter(m.Room.roomnumber == self.fields.get('searchby'))
         return  
         # return {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, 'description': new_room.description }
