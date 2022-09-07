@@ -5,7 +5,6 @@ from . import models as m
 class Field:
     def __init__(self,  label=None, required=True, values=None ):
         self.label = label
-        self.required = required
         self.values = values or {}
        
 
@@ -44,10 +43,10 @@ class RoomAddForm(Form):
                 # 'description': new_room.description }
        
 class SearchForm(Form):
-    roomnumber = Field(label='roomnumber')
-    countbedroom = Field(label='countbedroom')
-    price = Field(label='price')
-    description = Field(label='description')
+    # roomnumber = Field(label='roomnumber')
+    # countbedroom = Field(label='countbedroom')
+    # price = Field(label='price')
+    # description = Field(label='description')
     
     searchtext = Field(label='searchtext')
     searchby = Field(label='searchby')

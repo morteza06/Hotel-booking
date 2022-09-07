@@ -20,12 +20,12 @@ class Application(tk.Tk):
         self._appconfig = AppConfig()
         self.settings = {}
         self.title('Hotel Booking ')
-        # postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
+        #   pattern=    postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
         global engine 
         engine = create_engine("postgresql://postgres:admin@localhost:5432/Booking", client_encoding="utf8",echo=True)
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         
-        # At first run please create database Booking Schema and run this code for create model 
+        # At first run please create database Booking in to pgadmin4 then create database Schema by run this under command for create model 
         # Base.metadata.create_all(engine)  
         
         self.callbacks = {
@@ -33,7 +33,6 @@ class Application(tk.Tk):
             'settings--preferences': self.open_preferences,
             'settings--preferences--update': self.update_preferences,
             'settings--preferences': self.open_preferences,
-            # 'filter_search': self.filter_search,
             
             
             'open_roomadd_form':self.open_roomadd_form,
@@ -41,15 +40,12 @@ class Application(tk.Tk):
             'open_roomselect_form':self.open_roomselect_form,
             'open_search_form':self.open_search_form,
             
-            # 'open_roompayment_form':self.open_roompayment_form,
             'open_room_view': self.open_room_view,
             'on_save_room_form': self.on_save_room_form,
             'on_save_reserve_form': self.on_save_reserve_form,
             'on_search_form': self.on_search_form,
             'open_reserveinfoadd_form': self.open_reserveinfoadd_form,
             
-            # 'open_vehicleasset_form': self.open_vehicleasset_form,
-            # 'qry_vehiclemake': self.qry_vehiclemake
         }
 
         # Root configuration for minsize, resize support

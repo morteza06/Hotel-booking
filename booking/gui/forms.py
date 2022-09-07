@@ -151,7 +151,12 @@ class RoomSelectForm(tk.Frame):
                                             width=80).grid(column=0, row=2)
     
 class SearchForm(tk.Frame):
-    def __init__(self, parent, fields, callbacks):
+    searchtext_var=''
+    searchby_var=''
+    def __init__(self, parent, fields, callbacks): 
+        global searchtext_var
+        global searchby_var
+        
         super().__init__(parent)
         self.callbacks = callbacks
         self.fields = fields
@@ -162,8 +167,8 @@ class SearchForm(tk.Frame):
         self.searchtxt_var = tk.StringVar()
         self.searchtext = ttk.Entry(self, textvariable= self.searchtxt_var)
         # Labels
-        self.searchby_label = ttk.Label(self, text='Select this Field for search:')
         self.selected_search_var = tk.StringVar(self)
+        self.searchby_label = ttk.Label(self, text='Select this Field for search:')
         self.searchby = ttk.Combobox(self,textvariable=self.selected_search_var,
                                     state='readonly',width=20)
         self.searchby.bind('<<ComboboxSelected>>', self.on_searchby_selected)
@@ -180,18 +185,27 @@ class SearchForm(tk.Frame):
 
         self.save_btn.grid(column=1, row=4)
         
-        self.fields['searchby']='label'#  add to dict
-        self.fields[str(self.searchby.get())]=['values']
-        self.fields['searchtext']='label'
-        self.fields[str(self.searchtext.get())]=['values']
-        # self.fields[ ]='values'
+        # self.fields['searchby']='label'#  add to dict
+        # self.fields[str(self.searchby.get())]=['values']
+        # self.fields['searchtext']='label'
+        # self.fields['111111']=['values']
+        
+        # self.fields[ ]='values'       str(self.searchtext.get())
         # print('=>>>>>',self.searchtext.get())
+        # print('===>',self.fields.items())
+
     def on_searchby_selected(self, event):
+        # global searchtext_var
+        # global searchby_var
+       
+        searchtext_var = str(self.searchtext.get())
+        searchby_var = str(self.searchby.get())
+        
         self.fields.clear()#empty dictionary
-        self.fields['searchby']='label'#  add to dict
-        self.fields[str(self.searchby.get())]='values'
         self.fields['searchtext']='label'
-        self.fields[str(self.searchtext.get())]='values'
+        self.fields[searchtext_var]='values'
+        self.fields['searchby']='label'#  add to dict
+        self.fields[searchby_var]='values'
         
         print('=>>>>>',self.searchtext.get())
         print('=>>>>>',self.searchby.get())
@@ -199,10 +213,24 @@ class SearchForm(tk.Frame):
         # self.fields[ ]='values'
         
     def get(self)-> dict:
+        print('fields1===',self.fields.items())
+        searchtext_var = str(self.searchtext.get())
+        searchby_var = str(self.searchby.get())
+        print('get===',searchtext_var)
+        print('get===',searchby_var)
+        
+        # self.fields.clear()#empty dictionary
+        # self.fields['searchtext']='label'
+        # self.fields[searchtext_var]='values'
+        # self.fields['searchby']='label'#  add to dict
+        # self.fields[searchby_var]='values'
+        print('fields2===',self.fields.items())
+        
         data = self.fields
         return data
     def reset(self):
-        self.searchtext_var = None
+        searchtext_var=''
+        searchby_var=''
         
     def show(self):
         pass
