@@ -127,7 +127,7 @@ class Application(tk.Tk):
             with self.session_scope() as session:
                 self.search_form = gui.forms.SearchForm(
                     self.workspace_frame,
-                    db.forms.SearchForm(self).fields,
+                    db.forms.SearchForm(self),
                     self.callbacks,
                 )
             self.search_form.grid(row=0, column=0, sticky='NSEW')
@@ -153,7 +153,7 @@ class Application(tk.Tk):
                 self.roomadd_form = gui.forms.RoomAddForm(
                     self.workspace_frame,
                     db.forms.RoomAddForm(session).fields,
-                    self.callbacks,
+                    self.callbacks
                 )
             self.roomadd_form.grid(row=0, column=0, sticky='NSEW')
         else: 
@@ -162,7 +162,6 @@ class Application(tk.Tk):
     def on_save_room_form(self):
         try:
             data = self.roomadd_form.get()
-            print(data)
             with self.session_scope() as session:
                 new_record = db.forms.RoomAddForm().save(session, data)
             messagebox.showinfo('Information','Record saved')

@@ -3,7 +3,7 @@ from . import models as m
     difine meta data ; model, fields, field_class   define some query
 """
 class Field:
-    def __init__(self,  label=None, required=True, value=None ):
+    def __init__(self,  label=None, value=None ):
         self.label = label
         self.value = value
        
@@ -33,20 +33,15 @@ class RoomAddForm(Form):
         
     def save(self, session, data):
         print('Save in RoomAddFrom===========')
-        new_room =  m.Room( roomnumber= data['roomnumber'], countbedroom= data['countbedroom'], \
+        new_room =  m.Room( roomnumber= data['roomnumber'], countbedroom = data['countbedroom'], \
                             price= data['price'], description= data['description'] )
         print(new_room)
         session.add(new_room)
         session.commit()
-        return 
     # {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, \
                 # 'description': new_room.description }
        
 class SearchForm(Form):
-    # roomnumber = Field(label='roomnumber')
-    # countbedroom = Field(label='countbedroom')
-    # price = Field(label='price')
-    # description = Field(label='description')
     
     searchtext = Field(label='searchtext')
     searchby = Field(label='searchby')
@@ -56,12 +51,14 @@ class SearchForm(Form):
     def search(self,session,data):
         # print(data['searchtext']['values'])
         print(data.items())
+        
         if self.fields.get('searchby') == '':
             self.messagebox.showinfo('Information','Please Insert text for search ')
         if self.fields.get('searchtext') == '':
             self.messagebox.showinfo('Information','Please Select  search type ')
             # print(data.items())
-            print('========',data['searchby'].get())
+        else:
+            print('===>',data.get('searchby'),'==>',data.get('searchtext'))
             Qsearch = session.query(m.Room).filter(m.Room.roomnumber == self.fields.get('searchby'))
         return  
         # return {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, 'description': new_room.description }
@@ -80,8 +77,6 @@ class ReserveInfoAddForm(Form):
         # print(new_reserve)
         session.add(new_reserve)
         session.commit()
-        return {'roomid': new_reserve.roomid, 'personid': new_reserve.personid, 'startdate': new_reserve.startdate, \
-                'enddate': new_reserve.enddate, 'pricesum': new_reserve.pricesum }
           
 class RoomSelectForm(Form):
     

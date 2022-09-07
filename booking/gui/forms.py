@@ -2,49 +2,42 @@ from tkinter import ttk
 import tkinter as tk
 
 class RoomAddForm(tk.Frame):
-    def __init__(self, parent, fields, callbacks, *args, **kwargs):
+    def __init__(self, parent,fields, callbacks, *args, **kwargs):
         super().__init__(parent, **kwargs)
-        
         self.callbacks = callbacks
-        self.input = {}
-
         # input
-        self.roomnumber_label = ttk.Label(self, text=fields['roomnumber']['label'])
+        self.roomnumber_label = ttk.Label(self, text='roomnumber')
         self.roomnumber_var = tk.StringVar()
-        self.input['roomnumber'] = ttk.Entry(self, textvariable= self.roomnumber_var)
-        
-        self.countbedroom_label = ttk.Label(self, text=fields['countbedroom']['label'])
+        self.roomnumber = ttk.Entry(self, textvariable= self.roomnumber_var)
+        self.countbedroom_label = ttk.Label(self, text='countbedroom')
         self.countbedroom_var = tk.StringVar()
-        self.input['countbedroom'] = ttk.Entry(self, textvariable= self.countbedroom_var)
-        
-        self.price_label = ttk.Label(self, text=fields['price']['label'])
+        self.countbedroom = ttk.Entry(self, textvariable= self.countbedroom_var)
+        self.price_label = ttk.Label(self, text='price')
         self.price_var = tk.StringVar()
-        self.input['price'] = ttk.Entry(self, textvariable= self.price_var)
-        
-        self.description_label = ttk.Label(self, text=fields['description']['label'])
+        self.price = ttk.Entry(self, textvariable= self.price_var)
+        self.description_label = ttk.Label(self, text='description')
         self.description_var = tk.StringVar()
-        self.input['description'] = ttk.Entry(self, textvariable= self.description_var)
-        
+        self.description = ttk.Entry(self, textvariable= self.description_var)
         self.save_btn = ttk.Button(self, text='     Add Room    ',
                                    command=self.callbacks['on_save_room_form'])
                                  
         # Layout
         self.roomnumber_label.grid(column=0, row=0)
-        self.input['roomnumber'].grid(column=1, row=0)
+        self.roomnumber.grid(column=1, row=0)
         self.countbedroom_label.grid(column=0, row=1)
-        self.input['countbedroom'].grid(column=1, row=1)
+        self.countbedroom.grid(column=1, row=1)
         self.price_label.grid(column=0, row=2)
-        self.input['price'].grid(column=1, row=2)
+        self.price.grid(column=1, row=2)
         self.description_label.grid(column=0, row=3)
-        self.input['description'].grid(column=1, row=3)
+        self.description.grid(column=1, row=3)
         self.save_btn.grid(column=1, row=4)        
+        
     def get(self)-> dict:
         data = {
-            # 'id':self.id_var.get(),
-            'roomnumber': self.roomnumber_var,
-            'countbedroom': self.countbedroom_var,
-            'price':self.price_var,
-            'description':self.description_var
+            'roomnumber': self.roomnumber_var.get(),
+            'countbedroom': self.countbedroom_var.get(),
+            'price':self.price_var.get(),
+            'description':self.description_var.get()
         }
         return data
     
@@ -53,9 +46,10 @@ class RoomAddForm(tk.Frame):
         self.countbedroom_var = None
         self.price_var = None
         self.description_var = None
-        
-    def on_roomadd_saved(self):
-        print('somone saved a Room add ')
+        self.roomnumber.delete(0,'end')
+        self.countbedroom.delete(0,'end')
+        self.price.delete(0,'end')
+        self.description.delete(0,'end')
 
 class ReserveInfoAddForm(tk.Frame):
     def __init__(self, parent, fields, callbacks, *args, **kwargs):
@@ -117,11 +111,11 @@ class ReserveInfoAddForm(tk.Frame):
     def get(self)-> dict:
         data = {
             # 'id':self.id_var.get(),
-            'roomid': self.roomid_var,
-            'personid': self.personid_var,
-            'startdate':self.startdate_var,
-            'enddate':self.enddate_var,
-            'pricesum':self.pricesum_var,
+            'roomid': self.roomid_var.get(),
+            'personid': self.personid_var.get(),
+            'startdate':self.startdate_var.get(),
+            'enddate':self.enddate_var.get(),
+            'pricesum':self.pricesum_var.get(),
         }
         return data
     
@@ -131,10 +125,7 @@ class ReserveInfoAddForm(tk.Frame):
         self.startdate_var  = None
         self.enddate_var  = None
         self.pricesum_var = None
-        
-    def on_roomadd_saved(self):
-        print('somone saved a Room add ')
-   
+
 class RoomSelectForm(tk.Frame):
     def __init__(self, parent, fields, callbacks, *args, **kwargs):
         super().__init__(parent, **kwargs)
@@ -152,14 +143,13 @@ class RoomSelectForm(tk.Frame):
 class SearchForm(tk.Frame):
     searchtext_var=''
     searchby_var=''
-    def __init__(self, parent, fields, callbacks): 
-        global searchtext_var
-        global searchby_var
+    data={}
+    def __init__(self, parent, callbacks, *args, **kwargs): 
+        # global searchtext_var
+        # global searchby_var
         
         super().__init__(parent)
         self.callbacks = callbacks
-        self.fields = fields
-        self.fields.clear()
 
         # Input =>Text for Search 
         self.searchtxt_label = ttk.Label(self, text='Insert Text for search:')
@@ -176,72 +166,51 @@ class SearchForm(tk.Frame):
         
         self.save_btn = ttk.Button(self, text='      Search     ',
                                    command=self.callbacks['on_search_form'])
-        
         # label
         self.labelheader = ttk.Label(text='        Search Result', font=('impact', 14))
         
         # viewtree widget
         columns = ('id','ًroomnumber', 'countbedroom', 'price','description', 'personid', 'startdate', 'enddate', 'pricesum')
-        
         self.treeview = ttk.Treeview(self, columns=columns, height=10,show='headings')
-        
         self.treeview.heading(column='#1', text=' ID ')
         self.treeview.column("#1", minwidth=0, width=30, stretch=False)
-        
         self.treeview.heading(column='#2', text='Room Number')
         self.treeview.column("#2", minwidth=0, width=100, stretch=False)
-        
         self.treeview.heading(column='#3', text='Count Bedroom',anchor=tk.CENTER)
         self.treeview.column("#3", minwidth=0, width=100, stretch=True)
-        
         self.treeview.heading(column='#4', text='Price')
         self.treeview.column("#4", minwidth=0, width=80, stretch=False)
-        
         self.treeview.heading(column='#5', text='Description')
         self.treeview.column("#5", minwidth=0, width=200, stretch=True)
-        
         self.treeview.heading(column='#6', text='Person Id')
         self.treeview.column("#6", minwidth=0, width=80, stretch=False)
-        
         self.treeview.heading(column='#7', text='Start Date')
         self.treeview.column("#7", minwidth=0, width=80, stretch=False)
-        
         self.treeview.heading(column='#8', text='End Date')
         self.treeview.column("#8", minwidth=0, width=80, stretch=False)
-        
         self.treeview.heading(column='#9', text='Price Summerize')
         self.treeview.column("#9", minwidth=0, width=130, stretch=False)
-        
-        # Layout
-        
         # Layout
         self.searchtxt_label.grid(column=1, row=0)
         self.searchtext.grid(column=2, row=0)
         self.searchby_label.grid(column=1, row=1)
         self.searchby.grid(column=2, row=1)
-
         self.save_btn.grid(column=2, row=4)
-
         self.labelheader.grid(column=0, row=5, sticky='ensw' )
         self.treeview.grid(column=0, row=6)
-    def on_searchby_selected(self, event):
-        searchtext_var = str(self.searchtext.get())
-        searchby_var = str(self.searchby.get())
         
-        self.fields.clear()#empty dictionary
-        self.fields['searchtext']='label'
-        self.fields[searchtext_var]='values'
-        self.fields['searchby']='label'#  add to dict
-        self.fields[searchby_var]='values'
+    def on_searchby_selected(self, event):
+        data ={
+            'searchby':str(self.searchtext.get()),
+            'searchtext':str(self.searchby.get())
+        }
         
     def get(self)-> dict:
-        data = self.fields
-        searchtext_var = str(self.searchtext.get())
-        searchby_var = str(self.searchby.get())
+        data = {}
+        data['searchby']= str(self.searchtext.get())
+        data['searchtext']= str(self.searchby.get())
         return data
     def reset(self)->None:
-        searchtext_var=''
-        searchby_var=''
         self.searchtext.delete(0,'end')
         self.searchby.current(0)
     def show(self):
