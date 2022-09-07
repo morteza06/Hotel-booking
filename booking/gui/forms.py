@@ -184,20 +184,8 @@ class SearchForm(tk.Frame):
         self.searchby.grid(column=1, row=1)
 
         self.save_btn.grid(column=1, row=4)
-        
-        # self.fields['searchby']='label'#  add to dict
-        # self.fields[str(self.searchby.get())]=['values']
-        # self.fields['searchtext']='label'
-        # self.fields['111111']=['values']
-        
-        # self.fields[ ]='values'       str(self.searchtext.get())
-        # print('=>>>>>',self.searchtext.get())
-        # print('===>',self.fields.items())
 
     def on_searchby_selected(self, event):
-        # global searchtext_var
-        # global searchby_var
-       
         searchtext_var = str(self.searchtext.get())
         searchby_var = str(self.searchby.get())
         
@@ -214,6 +202,7 @@ class SearchForm(tk.Frame):
         
     def get(self)-> dict:
         print('fields1===',self.fields.items())
+        data = self.fields.items()
         searchtext_var = str(self.searchtext.get())
         searchby_var = str(self.searchby.get())
         print('get===',searchtext_var)
@@ -225,12 +214,14 @@ class SearchForm(tk.Frame):
         # self.fields['searchby']='label'#  add to dict
         # self.fields[searchby_var]='values'
         print('fields2===',self.fields.items())
+        print('fields2===',type(data))
         
-        data = self.fields
         return data
-    def reset(self):
+    def reset(self)->None:
         searchtext_var=''
         searchby_var=''
+        self.searchtext.delete(0,'end')
+        self.searchby.current(0)
         
     def show(self):
         pass
