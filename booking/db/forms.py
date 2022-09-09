@@ -25,11 +25,11 @@ class Form:
         return f
 
 
-class RoomAddForm(Form):
-    roomnumber = Field(label='roomnumber')
-    countbedroom = Field(label='countbedroom')
-    price = Field(label='price')
-    description = Field(label='description')
+class RoomForm(Form):
+    # roomnumber = Field(label='roomnumber')
+    # countbedroom = Field(label='countbedroom')
+    # price = Field(label='price')
+    # description = Field(label='description')
         
     def save(self, session, data):
         print('Save in RoomAddFrom===========')
@@ -63,7 +63,7 @@ class SearchForm(Form):
         return  
         # return {'roomnumber': new_room.roomnumber, 'countbedroom': new_room.countbedroom, 'price': new_room.price, 'description': new_room.description }
        
-class ReserveInfoAddForm(Form):
+class ReserveForm(Form):
     roomid = Field(label='roomid')
     personid = Field(label='personid')
     startdate = Field(label='startdate')
@@ -71,30 +71,12 @@ class ReserveInfoAddForm(Form):
     pricesum = Field(label='pricesum')
         
     def save(self, session, data):
-        print('Save in ReserveInfoAddForm ====')
+        print('Save in ReserveForm ====')
         new_reserve =  m.Reserve( roomid= data['roomid'], personid= data['personid'],\
                             startdate= data['startdate'], enddate= data['enddate'], pricesum= data['pricesum'] )
         # print(new_reserve)
         session.add(new_reserve)
         session.commit()
           
-class RoomSelectForm(Form):
-    
-    # id = Field(label='id')
-    roomnumber = Field(label='roomnumber')
-    # countbedroom = Field(label='countbedroom')
-    # price = Field(label='price')
-    # description = Field(label='description')
-  
-    def __init__(self, session, data, **kwargs):
-        self.data = data
-        print(self.data)
-        self.session = session
-        q_room = session.query(m.Room)
-        self.values ={['id'][row.id]:['roomnumber'][row.roomnumber] for row in q_room.all()}
-        print(self.values,"*/*/*/*")
-        data = self.values 
-        print('RoomAddForm ==> run query')
-        print('db.forms ==> init  RoomAddForm')
-        return None
-        
+class PersonForm(Form):
+    pass

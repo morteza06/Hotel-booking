@@ -1,8 +1,8 @@
 from contextlib import contextmanager
-from dataclasses import field, fields
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import tkinter as tk
+from tkinter import  *
 from tkinter import ttk, messagebox
 
 from . import db 
@@ -35,16 +35,24 @@ class Application(tk.Tk):
             'settings--preferences': self.open_preferences,
             
             
-            'open_roomadd_form':self.open_roomadd_form,
-            'open_reserveinfoadd_form':self.open_reserveinfoadd_form,
-            'open_roomselect_form':self.open_roomselect_form,
-            'open_search_form':self.open_search_form,
+            'open_room_form':self.open_room_form,
+            'open_reserve_form':self.open_reserve_form,
+            'open_user_form':self.open_user_form,
+            'open_usertype_form': self.open_usertype_form,
+            'open_reserve_form':self.open_reserve_form,
+            'open_report_view': self.open_report_view,
             
-            'open_room_view': self.open_room_view,
-            'on_save_room_form': self.on_save_room_form,
-            'on_save_reserve_form': self.on_save_reserve_form,
-            'on_search_form': self.on_search_form,
-            'open_reserveinfoadd_form': self.open_reserveinfoadd_form,
+            'on_add_room': self.on_add_room,
+            'on_update_room': self.on_update_room,
+            'on_delete_room': self.on_delete_room,
+            'on_clear_room': self.on_clear_room,
+            'on_showall_room': self.on_showall_room,
+            'on_search_room_data': self.on_search_room_data,
+            'on_fetch_room_data': self.on_fetch_room_data,
+            
+            
+            'on_add_reserve_form': self.on_add_reserve_form,
+            'on_udate_reserve_form': self.on_udate_reserve_form,
             
         }
 
@@ -74,35 +82,31 @@ class Application(tk.Tk):
         self.left_nav_frame.grid(row=0, column=0, sticky='NSEW')
         self.workspace_frame.grid(row=0, column=1, sticky='NSEW')
         
-        self.roomadd_btn = ttk.Button(self.left_nav_frame, text='      Add New Room     ',
-                                          command=self.callbacks['open_roomadd_form'])
-        self.reserveadd_btn = ttk.Button(self.left_nav_frame, text='     Add Reserve info   ',
-                                          command=self.callbacks['open_reserveinfoadd_form'])
-        self.search_btn = ttk.Button(self.left_nav_frame, text='             Search          ',
-                                          command=self.callbacks['open_search_form'])
-        # self.roomselect_btn = ttk.Button(self.left_nav_frame, text='Select the Room',
-        #                                   command=self.callbacks['open_roomselect_form'])
-        # self.roompayment_btn = ttk.Button(self.left_nav_frame, text='payment Room',
-        #                                   command=self.callbacks['open_roompayment_form'])
-        self.room_view_btn = ttk.Button(self.left_nav_frame, text='    View Rooms Records  ',
-                                          command=self.callbacks['open_room_view'])
+        self.room_btn = ttk.Button(self.left_nav_frame,    text='        Room       ',
+                                          command=self.callbacks['open_room_form'])
+        self.reserve_btn = ttk.Button(self.left_nav_frame, text='     Reservation   ',
+                                          command=self.callbacks['open_reserve_form'])
+        self.user_btn = ttk.Button(self.left_nav_frame,  text='         User       ',
+                                          command=self.callbacks['open_user_form'])
+        self.usertype_btn = ttk.Button(self.left_nav_frame,text='       User type   ',
+                                          command=self.callbacks['open_usertype_form'])
+        self.report_view_btn = ttk.Button(self.left_nav_frame,text='        Report     ',
+                                          command=self.callbacks['open_report_view'])
         
-        
-        self.roomadd_btn.grid(row=0, column=0)
-        self.reserveadd_btn.grid(row=1, column=0)
-        # self.roomselect_btn.grid(row=2, column=0)
-        self.search_btn.grid(row=3, column=0)
-        # self.roompayment_btn.grid(row=2, column=0)
-        self.room_view_btn.grid(row=4, column=0)
+        self.room_btn.grid(row=0, column=0, pady=2)
+        self.reserve_btn.grid(row=1, column=0, pady=2)
+        self.user_btn.grid(row=2, column=0, pady=2)
+        self.usertype_btn.grid(row=3, column=0, pady=2)
+        self.report_view_btn.grid(row=4, column=0, pady=2)
 
         self.app_form_window = None
-        self.roomadd_form = None
-        self.search_form = None
-        self.reservinfoadd_form = None
-        self.roomselect_form = None
-        # self.roompayment_form = None
-
         
+        self.room_form = None
+        self.reserveadd_form = None
+        self.user_form = None
+        self.usertype_form = None
+        self.report_form = None
+
         self.room_view = None
         
         self.preferences_form_window = None
@@ -122,6 +126,130 @@ class Application(tk.Tk):
         finally:
             session.close()
     
+  
+    # handling view,model
+    def open_room_form(self):
+        data={}
+        if self.room_form is None:
+            with self.session_scope() as session:
+                self.room_form = gui.forms.RoomForm(
+                    self.workspace_frame,
+                    db.forms.RoomForm(session).fields,
+                    data,
+                    self.callbacks
+                )
+            self.room_form.grid(row=0, column=0, sticky='NSEW')
+        else: 
+            self.room_form.lift()
+    # == Room callback Contorls { 
+    def on_add_room(self):
+        try:
+            data = self.room_form.get()
+            with self.session_scope() as session:
+                db.forms.RoomForm(self).save(session, data)
+            messagebox.showinfo('Information','Record saved')
+            self.room_form.clear(self)
+        except NameError:
+            messagebox.showinfo('Warning','Something went wrong')
+    
+    def on_update_room(self):
+        
+        pass
+    
+    def on_delete_room(self):
+        pass
+    
+    def on_clear_room(self):
+        pass
+            
+    def on_showall_room(self):
+        print('== in showall C')
+        with self.session_scope() as session:
+            data =  db.queries.qry_room_showall_view(session)
+            # print("quer is run==",data.items())
+            self.room_form =  gui.forms.RoomForm(
+                self.workspace_frame,
+                db.forms.RoomForm(session).fields,
+                data,
+                self.callbacks
+            )
+        self.room_form.fetch_data(data)
+
+    def on_search_room_data(self):
+        pass
+    
+    def on_fetch_room_data(self):
+        pass
+    # } == Room callback Contorls 
+    
+    # handling view,model    
+    def open_reserve_form(self):
+        if self.reserveadd_form is None:
+            with self.session_scope() as session:
+                self.reserveadd_form = gui.forms.ReserveForm(
+                    self.workspace_frame,
+                    db.forms.ReserveForm().fields,
+                    self.callbacks,
+                )
+            self.reserveadd_form.grid(row=0, column=0, sticky='NSEW')
+        else: 
+            self.reserveadd_form.lift()
+    # == Reserve callback Contorls {     
+    def on_add_reserve_form(self):
+        try:
+            data = self.reserveadd_form.get()
+            with self.session_scope() as session:
+                new_record = db.forms.ReserveForm().save(session, data)
+            messagebox.showinfo('Information','Record saved')
+        except NameError:
+            messagebox.showinfo('Warning','Something went wrong')
+            
+    def on_udate_reserve_form(self):
+        pass
+            
+    def open_user_form(self, called_from=None, modal=False):
+        self.app_form_window = gui.widgets.Toplevel(self,called_from, modal)
+        if modal is True:
+            self.app_form_window.grab_set()
+        with self.session_scope() as session:
+            self.user_form = gui.forms.PersonForm(
+                self.app_form_window,
+                db.forms.PersonForm(session=session, data=None).fields,
+                self.callbacks,
+        )
+        self.app_form_window.focus()
+
+    def open_report_view(self):
+        if self.room_view is None:
+            with self.session_scope() as session:
+                self.room_view = gui.views.Room_View(
+                    self.workspace_frame,
+                    db.queries.qry_room_view(session),
+                    self.callbacks
+                )
+            self.room_view.grid(row=0, column=0, sticky='NSEW')
+        else:
+            self.room_view.lift()
+    # } == Reserve callback Contorls 
+    def open_preferences(self):
+        if self.preferences_form_window is None or not self.preferences_form_window.winfo_exists():
+            self.preferences_form_window = tk.Toplevel(self)
+            self.preferences_form_window.minsize(480, 320)
+            self.preferences_form_window.rowconfigure(0, weight=1)
+            self.preferences_form_window.columnconfigure(0, weight=1)
+            self.preferences_form = menus.Preferences(self.preferences_form_window, self.callbacks, self.settings)
+            self.preferences_form.grid(row=0, column=0, sticky='NSEW')
+        else:
+            self.preferences_form_window.lift(self)
+        self.preferences_form_window.focus()
+
+    def update_preferences(self):
+        data = self.preferences_form.appearance_frame.get()
+        self._appconfig.update_settings(data)
+
+    def open_usertype_form(self):
+        pass
+    # --------end
     def open_search_form(self):
         if self.search_form is None:
             with self.session_scope() as session:
@@ -146,90 +274,3 @@ class Application(tk.Tk):
             messagebox.showinfo('Information','Search complete')
         except NameError:
             messagebox.showinfo('Warning','Input type have a fault.')
-            
-    def open_roomadd_form(self):
-        if self.roomadd_form is None:
-            with self.session_scope() as session:
-                self.roomadd_form = gui.forms.RoomAddForm(
-                    self.workspace_frame,
-                    db.forms.RoomAddForm(session).fields,
-                    self.callbacks
-                )
-            self.roomadd_form.grid(row=0, column=0, sticky='NSEW')
-        else: 
-            self.roomadd_form.lift()
-        
-    def on_save_room_form(self):
-        try:
-            data = self.roomadd_form.get()
-            with self.session_scope() as session:
-                new_record = db.forms.RoomAddForm().save(session, data)
-            messagebox.showinfo('Information','Record saved')
-        except NameError:
-            messagebox.showinfo('Warning','Something went wrong')
-            
-    def open_reserveinfoadd_form(self):
-        if self.reservinfoadd_form is None:
-            with self.session_scope() as session:
-                self.reservinfoadd_form = gui.forms.ReserveInfoAddForm(
-                    self.workspace_frame,
-                    db.forms.ReserveInfoAddForm().fields,
-                    self.callbacks,
-                )
-            self.reservinfoadd_form.grid(row=0, column=0, sticky='NSEW')
-        else: 
-            self.reservinfoadd_form.lift()
-        
-    def on_save_reserve_form(self):
-        try:
-            data = self.reservinfoadd_form.get()
-            with self.session_scope() as session:
-                new_record = db.forms.ReserveInfoAddForm().save(session, data)
-            messagebox.showinfo('Information','Record saved')
-        except NameError:
-            messagebox.showinfo('Warning','Something went wrong')
-            
-    def open_roomselect_form(self, called_from=None, modal=False):
-        self.app_form_window = gui.widgets.Toplevel(self,called_from, modal)
-        if modal is True:
-            self.app_form_window.grab_set()
-        with self.session_scope() as session:
-            self.roomselect_form = gui.forms.RoomSelectForm(
-                self.app_form_window,
-                db.forms.RoomSelectForm(session=session, data=None).fields,
-                self.callbacks,
-        )
-        self.roomselect_form.pack(fill='x', expand=True)
-        self.app_form_window.focus()
-
-    def open_room_view(self):
-        if self.room_view is None:
-            with self.session_scope() as session:
-                self.room_view = gui.views.Room_View(
-                    self.workspace_frame,
-                    db.queries.qry_room_view(session),
-                    self.callbacks
-                )
-            self.room_view.grid(row=0, column=0, sticky='NSEW')
-        else:
-            self.room_view.lift()
-        
-    def open_preferences(self):
-        if self.preferences_form_window is None or not self.preferences_form_window.winfo_exists():
-            self.preferences_form_window = tk.Toplevel(self)
-            self.preferences_form_window.minsize(480, 320)
-            self.preferences_form_window.rowconfigure(0, weight=1)
-            self.preferences_form_window.columnconfigure(0, weight=1)
-            self.preferences_form = menus.Preferences(self.preferences_form_window, self.callbacks, self.settings)
-            self.preferences_form.grid(row=0, column=0, sticky='NSEW')
-        else:
-            self.preferences_form_window.lift(self)
-        self.preferences_form_window.focus()
-
-    def update_preferences(self):
-        data = self.preferences_form.appearance_frame.get()
-        self._appconfig.update_settings(data)
-
-    # def filter_search(self):
-    #     with self.session_scope() as session:
-    #         return db.filters.filter_search(session)

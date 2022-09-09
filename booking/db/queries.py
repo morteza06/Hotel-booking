@@ -30,5 +30,25 @@ def qry_room_view(session):
         }
     print(result)
     return result
+def qry_room_showall_view(session):
+    query = session.query(
+        m.Room.id.label('id'),
+        m.Room.roomnumber.label('roomnumber'),
+        m.Room.countbedroom.label('countbedroom'),
+        m.Room.price.label('price'),
+        m.Room.description.label('description'),
+        )
+    query = query.select_from(m.Room)
+    data = {
+         row.id:
+                {'id':row.id ,
+                'roomnumber':row.roomnumber ,
+                'countbedroom':row.countbedroom,
+                'price': row.price,
+                'description': row.description ,
+                } for row in query.all()
+        }
+    # print('out put query==== ',data.items())
+    return data
 
 

@@ -18,7 +18,7 @@ class Room_View(tk.Frame):
         
         self.treeview.heading(column='#2', text='Room Number')
         self.treeview.column("#2", minwidth=0, width=100, stretch=False)
-        
+
         self.treeview.heading(column='#3', text='Count Bedroom',anchor=tk.CENTER)
         self.treeview.column("#3", minwidth=0, width=100, stretch=True)
         
@@ -45,7 +45,7 @@ class Room_View(tk.Frame):
         self.load_records()
 
     def load_records(self):
-        print('data.items exists :',type(self.data.items()))
+        print('data.items exists :',self.data.items())
         for key, record in self.data.items():
             self.treeview.insert('', 'end', iid=key, open=False, text='Room ID: {}'.format(key),
                                 values =[ record['id'], record['roomnumber'], record['countbedroom'], record['price'],\
