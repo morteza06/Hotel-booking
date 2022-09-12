@@ -3,8 +3,7 @@ import tkinter as tk
 from . import widgets as w
 
 # sample code
-
-
+   
 class Room_View(tk.Frame):
     def __init__(self, parent, data, callbacks, **kwargs):
         super().__init__(parent, **kwargs)

@@ -1,6 +1,7 @@
 from . import models as m
 # sample
 
+
 def qry_room_view(session):
     query = session.query(
         m.Room.id.label('id'),
@@ -28,9 +29,13 @@ def qry_room_view(session):
                 'pricesum': row.pricesum ,
                 } for row in query.all()
         }
-    print(result)
+    print('output view=====',result)
     return result
+
+
 def qry_room_showall_view(session):
+    query=None
+    result={}
     query = session.query(
         m.Room.id.label('id'),
         m.Room.roomnumber.label('roomnumber'),
@@ -38,8 +43,8 @@ def qry_room_showall_view(session):
         m.Room.price.label('price'),
         m.Room.description.label('description'),
         )
-    query = query.select_from(m.Room)
-    data = {
+    # query = query.select_from(m.Room)
+    result = {
          row.id:
                 {'id':row.id ,
                 'roomnumber':row.roomnumber ,
@@ -48,7 +53,7 @@ def qry_room_showall_view(session):
                 'description': row.description ,
                 } for row in query.all()
         }
-    # print('out put query==== ',data.items())
-    return data
+    print('out put query==== ',result.items())
+    return result
 
 

@@ -5,6 +5,8 @@ import tkinter as tk
 from tkinter import  *
 from tkinter import ttk, messagebox
 
+from .db.forms import RoomForm
+
 from . import db 
 from . import gui
 from . import menus
@@ -48,7 +50,6 @@ class Application(tk.Tk):
             'on_clear_room': self.on_clear_room,
             'on_showall_room': self.on_showall_room,
             'on_search_room_data': self.on_search_room_data,
-            'on_fetch_room_data': self.on_fetch_room_data,
             
             
             'on_add_reserve_form': self.on_add_reserve_form,
@@ -99,15 +100,15 @@ class Application(tk.Tk):
         self.usertype_btn.grid(row=3, column=0, pady=2)
         self.report_view_btn.grid(row=4, column=0, pady=2)
 
+        # Instance of Object- (View)
         self.app_form_window = None
-        
         self.room_form = None
         self.reserveadd_form = None
         self.user_form = None
         self.usertype_form = None
         self.report_form = None
 
-        self.room_view = None
+        self.room_view = None # 
         
         self.preferences_form_window = None
         self.preferences_form = None
@@ -132,54 +133,112 @@ class Application(tk.Tk):
         data={}
         if self.room_form is None:
             with self.session_scope() as session:
+                data=db.queries.qry_room_showall_view(session)
                 self.room_form = gui.forms.RoomForm(
                     self.workspace_frame,
-                    db.forms.RoomForm(session).fields,
                     data,
                     self.callbacks
                 )
+            self.room_form.fetch_data1(data)
+            data={}
+            self.room_form.fetch_data2(data)
             self.room_form.grid(row=0, column=0, sticky='NSEW')
         else: 
             self.room_form.lift()
+        
     # == Room callback Contorls { 
     def on_add_room(self):
+        data = self.room_form.get()
+        print(data.items())
         try:
-            data = self.room_form.get()
             with self.session_scope() as session:
-                db.forms.RoomForm(self).save(session, data)
-            messagebox.showinfo('Information','Record saved')
-            self.room_form.clear(self)
+                idd=db.forms.RoomForm(session).add_room(data)
+                messagebox.showinfo('Information','Record saved')
+                self.room_form.add_row(idd)
+            self.room_form.clear()
         except NameError:
-            messagebox.showinfo('Warning','Something went wrong')
+            self.room_form.clear()
     
     def on_update_room(self):
         
-        pass
+        # switch state
+        self.room_form.switch()
+        # data=self.room_form.get()
+        # idd= data['id']
+        # print('idd=====',idd  )
+        # data2={}
+        # try:
+        #     if flag==False:
+        #         # step 1 fill the fields
+        #         self.room_form.set()   #show data to entry widget
+        #         if self.room_form.roomnumber_var.get()=="" or self.room_form.countbedroom.get()=="" or self.room_form.price.get() =="":
+        #             messagebox.showinfo("Information","Please fill all the fields!!!")
+        #             flag=True
+        #     else:
+        #         self.room_form.delete_row()
+        #         iid=data['id'].get()
+        #         with self.session_scope() as session:
+        #             # show content to text entry 
+        #             data=self.room_form.get()
+        #             self.room_db_form=db.forms.RoomForm(session,data)
+        #             self.room_db_form.updata_room(data)
+        #             self.on_showall_room()
+        #         if idd == '':
+        #             messagebox.showinfo(title='Information',message='Please select row of list for edit this')
+        # except Exception as e:
+        #     messagebox.showerror()
+        return
     
     def on_delete_room(self):
-        pass
+        data=self.room_form.get()
+        id= data['id']
+        try:
+            with self.session_scope() as session:
+                db.forms.RoomForm(session).delete_room(id)
+                self.room_form.delete_row()
+        except Exception as e:
+            messagebox.showinfo(title='Information',message='Not deleted selected row.')
     
     def on_clear_room(self):
-        pass
+        self.room_form.clear()
             
     def on_showall_room(self):
         print('== in showall C')
-        with self.session_scope() as session:
-            data =  db.queries.qry_room_showall_view(session)
-            # print("quer is run==",data.items())
-            self.room_form =  gui.forms.RoomForm(
-                self.workspace_frame,
-                db.forms.RoomForm(session).fields,
-                data,
-                self.callbacks
-            )
-        self.room_form.fetch_data(data)
-
-    def on_search_room_data(self):
-        pass
+        try:
+            data={}
+            with self.session_scope() as session:
+                # print("quer is run==",data.items())
+                data= db.queries.qry_room_showall_view(session)
+                # dct= dict((y, x) for x, y in data)
+                self.room_form = gui.forms.RoomForm(
+                    self.workspace_frame,
+                    data,
+                    self.callbacks
+                )
+                self.room_form.fetch_data1(data)
+        except Exception as e:
+            print('Error in data ==={}'.format(e))
+        return
     
-    def on_fetch_room_data(self):
-        pass
+    def on_search_room_data(self):
+        try:
+            data= self.room_form.get()
+            # data['searchby']=self.room_form.search_by_var.get()
+            # data['searchtext']=self.room_form.search_txt_var.get()
+            print('@@@',data['searchby'])
+            print('$$$',data['searchtext'])
+            with self.session_scope() as session:
+                self.room_form = gui.forms.RoomForm(self.workspace_frame, data, self.callbacks)
+                data2 = db.forms.RoomForm(self).search( data, session)
+                self.room_form.fetch_data2(data2)
+        except Exception as e:
+            messagebox.showerror('Error','You have an error in main search. \n{e}'.format(e))
+        else:
+            messagebox.showinfo(title='search',message='search data done.')
+            return
+        finally:
+            print('finally all search function comlete.')
+        
     # } == Room callback Contorls 
     
     # handling view,model    
@@ -208,16 +267,7 @@ class Application(tk.Tk):
         pass
             
     def open_user_form(self, called_from=None, modal=False):
-        self.app_form_window = gui.widgets.Toplevel(self,called_from, modal)
-        if modal is True:
-            self.app_form_window.grab_set()
-        with self.session_scope() as session:
-            self.user_form = gui.forms.PersonForm(
-                self.app_form_window,
-                db.forms.PersonForm(session=session, data=None).fields,
-                self.callbacks,
-        )
-        self.app_form_window.focus()
+        pass
 
     def open_report_view(self):
         if self.room_view is None:
@@ -250,27 +300,5 @@ class Application(tk.Tk):
     def open_usertype_form(self):
         pass
     # --------end
-    def open_search_form(self):
-        if self.search_form is None:
-            with self.session_scope() as session:
-                self.search_form = gui.forms.SearchForm(
-                    self.workspace_frame,
-                    db.forms.SearchForm(self),
-                    self.callbacks,
-                )
-            self.search_form.grid(row=0, column=0, sticky='NSEW')
-        else: 
-            self.search_form.lift()
+ 
             
-    def on_search_form(self):
-        try:
-            data = self.search_form.get()
-            self.search_form.reset()
-            with self.session_scope() as session:
-                list_search = db.forms.SearchForm().search(session, data)
-                print(list_search)    
-                # self.search_form = gui.forms.SearchForm().show(session)
-            
-            messagebox.showinfo('Information','Search complete')
-        except NameError:
-            messagebox.showinfo('Warning','Input type have a fault.')
