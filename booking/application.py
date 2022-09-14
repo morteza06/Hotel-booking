@@ -12,9 +12,7 @@ from . import gui
 from . import menus
 from .config import AppConfig
 
-
 from sqlalchemy.ext.declarative import declarative_base 
-
 
 class Application(tk.Tk):
     def __init__(self, *args ,**kwargs) :
@@ -26,34 +24,50 @@ class Application(tk.Tk):
         global engine 
         engine = create_engine("postgresql://postgres:admin@localhost:5432/Booking", client_encoding="utf8",echo=True)
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        
+
         # At first run please create database Booking in to pgadmin4 then create database Schema by run this under command for create model 
         # Base.metadata.create_all(engine)  
         
         self.callbacks = {
+            # Menu option
             'file--quit': self.quit,
             'settings--preferences': self.open_preferences,
             'settings--preferences--update': self.update_preferences,
             'settings--preferences': self.open_preferences,
             
-            
+            # Menu calls
             'open_room_form':self.open_room_form,
             'open_reserve_form':self.open_reserve_form,
             'open_user_form':self.open_user_form,
             'open_usertype_form': self.open_usertype_form,
             'open_reserve_form':self.open_reserve_form,
             'open_report_view': self.open_report_view,
+            'open_search_room_form':self.open_search_room_form,
             
+            # Room page functionality
             'on_add_room': self.on_add_room,
             'on_update_room': self.on_update_room,
             'on_delete_room': self.on_delete_room,
             'on_clear_room': self.on_clear_room,
-            'on_showall_room': self.on_showall_room,
+            
+            # Reserve page functionality
+            'on_add_reserve': self.on_add_reserve,
+            'on_update_reserve': self.on_update_reserve,
+            'on_delete_reserve': self.on_delete_reserve,
+            'on_clear_reserve': self.on_clear_reserve,
+            
+            # User page functionality
+            'on_add_user': self.on_add_user,
+            'on_update_user': self.on_update_user,
+            'on_delete_user': self.on_delete_user,
+            'on_clear_user': self.on_clear_user,
+            
+            # User Type page functionality
+            'on_add_usertype': self.on_add_usertype,
+            'on_update_usertype': self.on_update_user,
+            'on_clear_usertype': self.on_clear_usertype,
+            
             'on_search_room_data': self.on_search_room_data,
-            
-            
-            'on_add_reserve_form': self.on_add_reserve_form,
-            'on_udate_reserve_form': self.on_udate_reserve_form,
             
         }
 
@@ -93,17 +107,21 @@ class Application(tk.Tk):
                                           command=self.callbacks['open_usertype_form'])
         self.report_view_btn = ttk.Button(self.left_nav_frame,text='        Report     ',
                                           command=self.callbacks['open_report_view'])
+        self.search_room_btn = ttk.Button(self.left_nav_frame,text='  Search Room ',
+                                          command=self.callbacks['open_search_room_form'])
         
         self.room_btn.grid(row=0, column=0, pady=2)
         self.reserve_btn.grid(row=1, column=0, pady=2)
         self.user_btn.grid(row=2, column=0, pady=2)
         self.usertype_btn.grid(row=3, column=0, pady=2)
         self.report_view_btn.grid(row=4, column=0, pady=2)
+        self.search_room_btn.grid(row=5, column=0, pady=2)
 
         # Instance of Object- (View)
         self.app_form_window = None
         self.room_form = None
-        self.reserveadd_form = None
+        self.search_room_form = None
+        self.reserve_form = None
         self.user_form = None
         self.usertype_form = None
         self.report_form = None
@@ -127,21 +145,18 @@ class Application(tk.Tk):
         finally:
             session.close()
     
-  
-    # handling view,model
+    # handling ROOM view,model
     def open_room_form(self):
         data={}
         if self.room_form is None:
             with self.session_scope() as session:
-                data=db.queries.qry_room_showall_view(session)
+                data=db.queries.qry_room_showall(session)
                 self.room_form = gui.forms.RoomForm(
                     self.workspace_frame,
                     data,
                     self.callbacks
                 )
-            self.room_form.fetch_data1(data)
-            data={}
-            self.room_form.fetch_data2(data)
+            self.room_form.fetch_data(data)
             self.room_form.grid(row=0, column=0, sticky='NSEW')
         else: 
             self.room_form.lift()
@@ -149,18 +164,29 @@ class Application(tk.Tk):
     # == Room callback Contorls { 
     def on_add_room(self):
         data = self.room_form.get()
-        print(data.items())
+        if data['roomnumber'] and data['countbedroom'] and data['price'] and data['description']:
+            try:
+                    with self.session_scope() as session:
+                        idd=db.forms.RoomForm(session).add_room(data)
+                        messagebox.showinfo('Information','            Record saved             ')
+                        self.room_form.add_row(idd)
+                    self.room_form.clear()
+            except NameError:
+                self.room_form.clear()
+        else: 
+            messagebox.showinfo('Information','          Please Insert all fields  ')
+            
+    def on_delete_room(self):
+        data=self.room_form.get()
+        id = data['id']
         try:
             with self.session_scope() as session:
-                idd=db.forms.RoomForm(session).add_room(data)
-                messagebox.showinfo('Information','Record saved')
-                self.room_form.add_row(idd)
-            self.room_form.clear()
-        except NameError:
-            self.room_form.clear()
-    
+                db.forms.RoomForm(session).delete_room(id)
+                self.room_form.delete_row()
+        except Exception as e:
+            messagebox.showinfo(title='Information',message='Not deleted selected row.')   
+             
     def on_update_room(self):
-        
         # switch state
         self.room_form.switch()
         # data=self.room_form.get()
@@ -189,86 +215,149 @@ class Application(tk.Tk):
         #     messagebox.showerror()
         return
     
-    def on_delete_room(self):
-        data=self.room_form.get()
-        id= data['id']
-        try:
-            with self.session_scope() as session:
-                db.forms.RoomForm(session).delete_room(id)
-                self.room_form.delete_row()
-        except Exception as e:
-            messagebox.showinfo(title='Information',message='Not deleted selected row.')
-    
     def on_clear_room(self):
         self.room_form.clear()
-            
-    def on_showall_room(self):
-        print('== in showall C')
-        try:
-            data={}
+    # } == Room callback Contorls 
+    
+    # handling  Reserve view,model    
+    def open_reserve_form(self):
+        if self.reserve_form is None:
             with self.session_scope() as session:
-                # print("quer is run==",data.items())
-                data= db.queries.qry_room_showall_view(session)
-                # dct= dict((y, x) for x, y in data)
-                self.room_form = gui.forms.RoomForm(
+                data = db.queries.qry_reserve_showall(session)
+                self.reserve_form = gui.forms.ReserveForm(
                     self.workspace_frame,
                     data,
                     self.callbacks
                 )
-                self.room_form.fetch_data1(data)
-        except Exception as e:
-            print('Error in data ==={}'.format(e))
-        return
-    
-    def on_search_room_data(self):
-        try:
-            data= self.room_form.get()
-            # data['searchby']=self.room_form.search_by_var.get()
-            # data['searchtext']=self.room_form.search_txt_var.get()
-            print('@@@',data['searchby'])
-            print('$$$',data['searchtext'])
-            with self.session_scope() as session:
-                self.room_form = gui.forms.RoomForm(self.workspace_frame, data, self.callbacks)
-                data2 = db.forms.RoomForm(self).search( data, session)
-                self.room_form.fetch_data2(data2)
-        except Exception as e:
-            messagebox.showerror('Error','You have an error in main search. \n{e}'.format(e))
-        else:
-            messagebox.showinfo(title='search',message='search data done.')
-            return
-        finally:
-            print('finally all search function comlete.')
-        
-    # } == Room callback Contorls 
-    
-    # handling view,model    
-    def open_reserve_form(self):
-        if self.reserveadd_form is None:
-            with self.session_scope() as session:
-                self.reserveadd_form = gui.forms.ReserveForm(
-                    self.workspace_frame,
-                    db.forms.ReserveForm().fields,
-                    self.callbacks,
-                )
-            self.reserveadd_form.grid(row=0, column=0, sticky='NSEW')
+            self.reserve_form.fetch_data(data)
+            self.reserve_form.grid(row=0, column=0, sticky='NSEW')
         else: 
-            self.reserveadd_form.lift()
+            self.reserve_form.lift()
+            
     # == Reserve callback Contorls {     
-    def on_add_reserve_form(self):
+    def on_add_reserve(self):
+        data = self.reserve_form.get()
+        if data['roomid'] and data['personid'] and data['startdate'] and data['enddate'] and data['pricesum']:
+            try:
+                with self.session_scope() as session:
+                    iid=db.forms.ReserveForm(session).add_reserve(data)
+                    self.reserve_form.add_row(idd)
+                messagebox.showinfo('Information','     Record saved      ')
+            except NameError:
+                messagebox.showinfo('Warning','Something went wrong')
+        else: 
+                messagebox.showinfo('Warning','Please Insert all fields')
+            
+    def on_delete_reserve(self):
+        data=self.reserve_form.get()
+        id= data['id']
         try:
-            data = self.reserveadd_form.get()
             with self.session_scope() as session:
-                new_record = db.forms.ReserveForm().save(session, data)
-            messagebox.showinfo('Information','Record saved')
-        except NameError:
-            messagebox.showinfo('Warning','Something went wrong')
+                db.forms.ReserveForm(session).delete_reserve(id)
+                self.reserve_form.delete_row()
+        except Exception as e:
+            messagebox.showinfo(title='Information',message='Not deleted selected row.')  
             
-    def on_udate_reserve_form(self):
+    def on_update_reserve(self):
         pass
-            
-    def open_user_form(self, called_from=None, modal=False):
-        pass
+    
+    def on_clear_reserve(self):
+        self.reserve_form.clear()
+    # == Reserve callback Contorls }
+    
+    # handling  User view,model    
+    def open_user_form(self):
+        data={}
+        if self.user_form is None:
+            with self.session_scope() as session:
+                data = db.queries.qry_user_showall(session)
+                self.user_form = gui.forms.UserForm(
+                    self.workspace_frame,
+                    data,
+                    self.callbacks
+                )
+            self.user_form.fetch_data(data)
+            self.user_form.grid(row=0, column=0, sticky='NSEW')
+        else: 
+            self.user_form.lift()
+    
+    # { == User callback Contorls  User is Person table
+    def on_add_user(self):
+        data = self.user_form.get()
+        if data['id'] and data['usertype'] and data['name'] and data['family'] and data['email'] and data['telephone'] and data['address']:
+            try:
+                with self.session_scope() as session:
+                    iid=db.forms.UserForm(session).add_user(data)
+                    self.user_form.add_row(idd)
+                messagebox.showinfo('Information','     Record saved      ')
+            except NameError:
+                messagebox.showinfo('Warning','Something went wrong')
+        else: 
+                messagebox.showinfo('Warning','Please Insert all fields. ')
 
+    def on_delete_user(self):
+        data = self.user_form.get()
+        id= data['id']
+        try:
+            with self.session_scope() as session:
+                db.forms.UserForm(session).delete_user(id)
+                self.user_form.delete_row()
+        except Exception as e:
+            messagebox.showinfo(title='Information',message='Not deleted selected row.') 
+             
+    def on_update_user(self):
+        pass
+   
+    def on_clear_user(self):
+        self.user_form.clear()
+        return
+    # == User callback Contorls } 
+    
+    # handling  UserType view,model    
+    def open_usertype_form(self,):
+        data={}
+        if self.usertype_form is None:
+            with self.session_scope() as session:
+                data = db.queries.qry_usertype_showall(session)
+                self.usertype_form = gui.forms.UserTypeForm(
+                    self.workspace_frame,
+                    data,
+                    self.callbacks
+                )
+            self.usertype_form.fetch_data(data)
+            self.usertype_form.grid(row=0, column=0, sticky='NSEW')
+        else: 
+            self.usertype_form.lift()
+            
+    # { == User callback Contorls
+    def on_add_usertype(self):
+        data = self.usertype_form.get()
+        if data['title']:
+            try:
+                with self.session_scope() as session:
+                    iid=db.forms.UserTypeForm(session).add_usertype(data)
+                    self.usertype_form.add_row(idd)
+                messagebox.showinfo('Information','     Record saved      ')
+            except NameError:
+                messagebox.showinfo('Warning','Something went wrong')
+        else: 
+                messagebox.showinfo('Warning','Please Insert all fields. ')
+
+    def on_delete_usertype(self):
+        data = self.usertype_form.get()
+        id= data['id']
+        try:
+            with self.session_scope() as session:
+                db.forms.UserTypeForm(session).delete_user(id)
+                self.usertype_form.delete_row()
+        except Exception as e:
+            messagebox.showinfo(title='Information',message='Not deleted selected row.') 
+  
+    def on_clear_usertype(self):
+        self.usertype_form.clear()
+        return
+    # == User callback Contorls }        
+   
     def open_report_view(self):
         if self.room_view is None:
             with self.session_scope() as session:
@@ -280,7 +369,38 @@ class Application(tk.Tk):
             self.room_view.grid(row=0, column=0, sticky='NSEW')
         else:
             self.room_view.lift()
-    # } == Reserve callback Contorls 
+            
+     #  == Search callback Contorls 
+    def open_search_room_form(self):
+        data={}
+        if self.search_room_form is None:
+            with self.session_scope() as session:
+                self.search_room_form = gui.forms.SearchRoomForm(self.workspace_frame,data,self.callbacks)
+            data={}
+            self.search_room_form.fetch_data(data)
+            self.search_room_form.grid(row=0, column=0, sticky='NSEW')
+        else:
+            self.search_room_form.lift()
+            
+    def on_search_room_data(self):
+        try:
+            data= self.search_room_form.get()
+            # data['searchby']=self.room_form.search_by_var.get()
+            # data['searchtext']=self.room_form.search_txt_var.get()
+            print('@@@',data['searchby'])
+            print('$$$',data['searchtext'])
+            with self.session_scope() as session:
+                self.search_room_form = gui.forms.SearchRoomForm(self.workspace_frame, data, self.callbacks)
+                data2 = db.forms.SearchRoomForm(self).search( data, session)
+                self.search_room_form.fetch_data(data2)
+        except Exception as e:
+            messagebox.showerror('Error','You have an error in main search. \n{e}'.format(e))
+        else:
+            messagebox.showinfo(title='search',message='search data done.')
+            return
+        finally:
+            print('finally all search function comlete.')
+            
     def open_preferences(self):
         if self.preferences_form_window is None or not self.preferences_form_window.winfo_exists():
             self.preferences_form_window = tk.Toplevel(self)
@@ -296,9 +416,6 @@ class Application(tk.Tk):
     def update_preferences(self):
         data = self.preferences_form.appearance_frame.get()
         self._appconfig.update_settings(data)
-
-    def open_usertype_form(self):
-        pass
     # --------end
  
             

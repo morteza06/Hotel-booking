@@ -1,6 +1,8 @@
 from tkinter import ttk
 import tkinter as tk
 from . import widgets as w
+from tkinter import *
+
 
 # sample code
    
@@ -8,6 +10,9 @@ class Room_View(tk.Frame):
     def __init__(self, parent, data, callbacks, **kwargs):
         super().__init__(parent, **kwargs)
         self.data = data
+        self.Header_label = Label(self, text='Room list that is reserve:')
+        self.Header_label.grid( column=0, row=0,  sticky="nw")
+        
         columns = ('id','ًroomnumber', 'countbedroom', 'price','description', 'personid', 'startdate', 'enddate', 'pricesum')
         
         self.treeview = ttk.Treeview(self, columns=columns, height=10,show='headings')
@@ -40,7 +45,7 @@ class Room_View(tk.Frame):
         self.treeview.column("#9", minwidth=0, width=130, stretch=False)
         
         # Layout
-        self.treeview.grid(row=0, column=0)
+        self.treeview.grid(row=1, column=0)
         self.load_records()
 
     def load_records(self):
