@@ -124,7 +124,7 @@ def qry_usertype_showall(session):
     result = {
          row.id:
                 {'id':row.id ,
-                'title':row.title,
+                'title':row.title
                 } for row in query.all()
         }
     return result

@@ -372,12 +372,12 @@ class Application(tk.Tk):
             
      #  == Search callback Contorls 
     def open_search_room_form(self):
+        
         data={}
         if self.search_room_form is None:
             with self.session_scope() as session:
                 self.search_room_form = gui.forms.SearchRoomForm(self.workspace_frame,data,self.callbacks)
-            data={}
-            self.search_room_form.fetch_data(data)
+                # self.search_room_form.fetch_data(data)
             self.search_room_form.grid(row=0, column=0, sticky='NSEW')
         else:
             self.search_room_form.lift()
@@ -392,7 +392,9 @@ class Application(tk.Tk):
             with self.session_scope() as session:
                 self.search_room_form = gui.forms.SearchRoomForm(self.workspace_frame, data, self.callbacks)
                 data2 = db.forms.SearchRoomForm(self).search( data, session)
-                self.search_room_form.fetch_data(data2)
+            print('Dict==search===',data.items())
+            self.search_room_form.fetch_data(data2)
+                
         except Exception as e:
             messagebox.showerror('Error','You have an error in main search. \n{e}'.format(e))
         else:

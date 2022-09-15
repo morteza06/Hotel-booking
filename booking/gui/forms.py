@@ -580,7 +580,7 @@ class UserTypeForm(tk.Frame):
             if self.data != {}:
                 for key, record in self.data.items():
                     self.Room_Table.insert('', 'end', iid=key, open=False, text='Room ID: {}'.format(key),
-                                        values =[ record['id'], record['roomnumber'], record['countbedroom'], record['price'], record['description']])   
+                                        values =[ record['id'], record['title']])   
         except Exception as e:
             messagebox.showerror(title='Error',message='The Show data not avaiable, Error is about{}',detail=str(e))
         else:
@@ -590,7 +590,7 @@ class UserTypeForm(tk.Frame):
         
 class SearchRoomForm(tk.Frame):
    
-    def __init__(self, parent, data ,callbacks, *args, **kwargs):
+    def __init__(self, parent ,data,callbacks, *args, **kwargs):
         super().__init__(parent, **kwargs)
         self.callbacks = callbacks
         self.data = {}
@@ -598,34 +598,39 @@ class SearchRoomForm(tk.Frame):
         
         self.search_by_var = StringVar()
         self.search_txt_var = StringVar()
+        vcmd = (self.register(self.validate))
+        
         # ===== Search box  =====  
         self.lbl_search = Label(self, width=20, text="Search By:") 
         self.__searchby_list = ttk.Combobox(self,takefocus=1, textvariable=self.search_by_var, state="readonly" )
         self.__searchby_list['values']=('','RoomNumber','CountBedroom','Price[>=]YourEnter','Price[<=]YourEnter')
-        self.__searchby_list.bind('<<ComboboxSelected>>', self._on_combo_change)
+        # self.__searchby_list.bind('<<ComboboxSelected>>', self._on_combo_change)
         
         self.lbl_search.grid(row=8, column=0, padx=4, sticky="w")
         self.__searchby_list.grid(row=8, column=1,  sticky="w")
         
-        self.txt_search = Entry(self, textvariable=self.search_txt_var, font=("times new roman", 13),validate='key', bd=5, relief=GROOVE)
+        self.txt_search = Entry(self, validate = 'all',  validatecommand = (vcmd, '%P'), textvariable=self.search_txt_var, font=("times new roman", 13), bd=5, relief=GROOVE)
         self.txt_search.grid(row=8, column=2,  sticky="w")
         self.searchbtn = Button(self, text="Search", width=8, command=self.callbacks['on_search_room_data'])
         self.searchbtn.grid(row=8, column=3,  sticky="E")
-        
-    def _on_combo_change(self,event):
-        searchby_var= self.search_by_var.get()
-        print('===>', searchby_var)
-        print('===>',self.search_txt_var.get())
     
+    def validate(self, P):
+        if str.isdigit(P) or P == "":
+            return True
+        else:
+            return False
+        
     def get(self)-> dict:
         data = {
-            'searchby': self.searchby_var,
+            'searchby': self.search_by_var.get(),
             'searchtext': self.search_txt_var.get()
         }
         return data
         
     def fetch_data(self,data):
+        self.data=data
         #=== Tree view Table 
+        print('==show to treeview==',self.data.items())
         scroll_x = Scrollbar(self, orient=HORIZONTAL)
         scroll_y = Scrollbar(self, orient=VERTICAL)
 
@@ -648,7 +653,6 @@ class SearchRoomForm(tk.Frame):
         self.Room_Tablex.column("#4", width=120)
         self.Room_Tablex.column("#5", width=350)
         # self.Room_Table.pack(fill=BOTH, expand=1) #fill both is used to fill cols around the frame
-        self.data=data
         #to display data in grid
         try:
             if self.data != {}:
