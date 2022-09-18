@@ -23,9 +23,9 @@ class_registry ={}
 Base = declarative_base(cls=Base, class_registry=class_registry)
 
 
-class UserType(Base):
+class UserType(Base): # Not delte 
     __tablename__ = 'UserType'
-    id = Column('UserTypeID', Integer, primary_key=True)
+    id = Column('UserTypeID', Integer, primary_key=True) 
     title = Column(String(200))
     
     def __repr__(self):
@@ -34,7 +34,7 @@ class UserType(Base):
 class Access(Base):
     __tablename__ = 'Access'
     id = Column('AccessID', Integer, primary_key=True)
-    type = Column('UserType_ID', Integer, ForeignKey('UserType.UserTypeID', ondelete='CASCADE'))
+    type = Column('UserType_ID', Integer, ForeignKey('UserType.UserTypeID', ondelete='CASCADE')) 
     id2 = Column('Page_ID', Integer, ForeignKey('Page.PageID'))
     
     #help that is => https://stackoverflow.com/questions/5033547/sqlalchemy-cascade-delete
@@ -51,7 +51,7 @@ class Page(Base):
 class Person(Base): #User table
     __tablename__ = 'Person'
     id = Column('PersonID', Integer, primary_key=True)
-    user = Column ('UserType_ID',Integer, ForeignKey('UserType.UserTypeID', ondelete='CASCADE'))
+    user = Column ('UserType_ID',Integer, ForeignKey('UserType.UserTypeID', ondelete='ISNULL'))
     name = Column('UserName', String(200))
     family = Column('Family', String(200))
     email = Column('Email', String(100))
@@ -66,7 +66,7 @@ class Person(Base): #User table
 class Room(Base):
     __tablename__ = 'Room'
     id = Column('RoomID', Integer, primary_key = True)
-    roomnumber = Column('RoomNumber', Numeric)
+    roomnumber = Column('RoomNumber', Integer)
     countbedroom = Column('CountBedroom', Numeric)
     price = Column('Price', DECIMAL)
     description = Column('Description', String(350))
@@ -77,14 +77,14 @@ class Room(Base):
 class Reserve(Base):
     __tablename__ = 'Reserve'
     id = Column('ReserveID', Integer, primary_key=True)
-    roomid = Column('Room_ID', Integer, ForeignKey('Room.RoomID', ondelete='CASCADE'))
-    personid = Column('Person_ID', Integer, ForeignKey('Person.PersonID', ondelete='CASCADE'))
+    roomid = Column('Room_ID', Integer, ForeignKey('Room.RoomID', ondelete='ISNULL',))
+    personid = Column('Person_ID', Integer, ForeignKey('Person.PersonID', ondelete='ISNULL'))
     startdate = Column('StartDate', DATE)
     enddate = Column('EndDate', DATE)
     pricesum = Column('PriceSum', DECIMAL)
     
     room = relationship(Room, backref = backref('Reserve', passive_deletes=False))
-    person = relationship(Person, backref = backref('Reserve', passive_deletes=True))
+    person = relationship(Person, backref = backref('Reserve', passive_deletes=False))
     
     def __repr__(self) -> str:
         return 'Reserve({}{})'.format(self.roomid,self.pricesum)

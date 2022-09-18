@@ -1,3 +1,4 @@
+from datetime import datetime
 from tkinter import messagebox, ttk
 import tkinter as tk
 from tkinter import *
@@ -5,6 +6,7 @@ from tkinter.font import BOLD
 from tokenize import String
 from turtle import width
 from tkcalendar import Calendar, DateEntry
+from decimal import Decimal
 
 class RoomForm(tk.Frame):   
     def __init__(self, parent, data ,callbacks, *args, **kwargs):
@@ -185,19 +187,22 @@ class ReserveForm(tk.Frame):
         
         self.callbacks = callbacks
         self.data={}
+        self.roomid_var=-1
+        self.price_var=0
+        
         self.id_var = -1
-        self.roomid_var = StringVar()
+        self.roomnumber_var = StringVar()
         self.personid_var = StringVar()
         self.price_var = StringVar()
         self.startdate_var = StringVar()
         self.enddate_var = StringVar()
         self.pricesum_var = StringVar()
         
-        
         vcmd = (self.register(self.validate))
         self.Header_label = Label(self, text='Rserve information:')
-        self.roomid_label = Label(self, text='Room Id:')
-        self.roomid = Entry(self,validate='all', validatecommand= (vcmd, '%P'), textvariable= self.roomid_var)
+        self.roomnumber_label = Label(self, text='Room Number:')
+        self.roomnumber_combo = ttk.Combobox(self, textvariable=self.roomnumber_var)
+        # self.roomid = Entry(self,validate='all', validatecommand= (vcmd, '%P'), textvariable= self.roomid_var)
         self.personid_label = Label(self, text='Persion Id:')
         self.personid = Entry(self,validate='all', validatecommand= (vcmd, '%P'), textvariable= self.personid_var)
         self.startdate_label = Label(self, text='Start date:')
@@ -209,25 +214,30 @@ class ReserveForm(tk.Frame):
         
         # Layout label
         self.Header_label.grid( column=0, row=0,  sticky="nw")
-        self.roomid_label.grid( column=0, row=1, sticky="ne")
+        self.roomnumber_label.grid( column=0, row=1, sticky="ne")
         self.personid_label.grid(column=0, row=2, sticky="ne")
         self.startdate_label.grid(column=0, row=3, sticky="ne")
         self.enddate_label.grid(column=0, row=4, sticky="ne")
         self.pricesum_label.grid(column=0, row=5, sticky="ne")
+        # Combobox
+        self.roomnumber_combo.grid( column=1, row=1,  sticky="nw")
+        self.roomnumber_combo['state']= 'readonly'
+        
         # Layout textbox
-        self.roomid.grid(column=1, row=1,  sticky="nw")
+        # self.roomid.grid(column=1, row=1,  sticky="nw")
         self.personid.grid(column=1, row=2,  sticky="nw")
         self.startdate.grid(column=1, row=3,  sticky="nw")
         self.enddate.grid(column=1, row=4,  sticky="nw")
         self.pricesum.grid(column=1, row=5, sticky="nw")
-        
         # Button 
+        self.calc_btn = Button(self, text='Calculate',  width=8, command=self.callbacks['on_calc_reserve'])
         self.add_btn = Button(self, text='Add',  width=8, command=self.callbacks['on_add_reserve'])
         self.update_btn = Button(self, text='Update', width=8, state=DISABLED,command=self.callbacks['on_update_reserve'])
         self.delete_btn = Button(self, text='Delete', width=8, command=self.callbacks['on_delete_reserve'],bg='red')
         self.clear_btn = Button(self, text='Clear', width=8, command=self.callbacks['on_clear_reserve'])
         
         # layout
+        self.calc_btn.grid(column=1, row=5, sticky="E")
         self.add_btn.grid(column=1, row=6,columnspan=2, sticky="W")
         self.update_btn.grid(column=1, row=6, sticky="N",padx=2)
         self.delete_btn.grid(column=2, row=6,sticky="E")
@@ -262,18 +272,28 @@ class ReserveForm(tk.Frame):
             raise
         
     def get(self)-> dict:
+        # find room id and assign to variable= roomid_var
         data = {
             'id':self.id_var,
-            'roomid': self.roomid_var.get(),
+            'roomnumber': self.roomnumber_var.get(),
             'personid': self.personid_var.get(),
             'startdate':self.startdate_var.get(),
             'enddate':self.enddate_var.get(),
             'pricesum':self.pricesum_var.get()
         }
         return data
+   
+    def set(self,room_id):#in add item process 
+        self.roomid_var = room_id
+        return
     
-    def add_row(self,id):
-        self.Room_Tablex.insert('','end', values =(id, self.roomid_var.get() ,self.personid_var.get() ,\
+    def sets(self, room_id , price): #in calculate process
+        self.roomid_var = room_id
+        self.price_var = price
+        return
+    
+    def add_row(self, idd, data):
+        self.Room_Tablex.insert('','end', values =(idd, self.roomid_var , self.roomnumber_var, data['title'], data['name'], data['family'] ,\
                                                 self.startdate_var.get() ,self.enddate_var.get(),self.pricesum_var.get() )) 
         
     def reset(self):
@@ -328,7 +348,7 @@ class ReserveForm(tk.Frame):
         try:
             if self.data != {}:
                 for key, record in self.data.items():
-                    self.Room_Tablex.insert('', 'end', iid=key, open=False, text='Room ID: {}'.format(key),
+                    self.Room_Tablex.insert('', 'end', iid=key, open=False, text='Reserve ID: {}'.format(key),
                                         values =[ record['id'], record['roomid'], record['roomnumber'], record['personid'],\
                                             record['title'], record['name'], record['family'], record['startdate'],\
                                             record['enddate'], record['pricesum']])   
@@ -338,7 +358,27 @@ class ReserveForm(tk.Frame):
             return
         finally:
             print('finall in fetch layout')
-
+    
+    def show_sumprice(self,price):
+        date_start_obj = datetime.strptime(self.startdate_var.get(), '%m/%d/%y')
+        date_end_obj = datetime.strptime(self.enddate_var.get(), '%m/%d/%y')
+        delta = date_end_obj - date_start_obj
+        deltadays = delta.days
+        if deltadays >= 1:
+            sum= deltadays * Decimal(price)
+            self.pricesum_var.set(str(round(sum)))
+        else: 
+            messagebox.showerror('Information','Different betweent in Start Date and End date is wrong .')
+            raise
+        return self
+         
+    def list_room_number(self, dataT):
+        keyslist=[]
+        keyslist=list(dataT.keys())
+        keyslist.sort()
+        self.roomnumber_combo['values']= keyslist
+        return
+            
 class UserForm(tk.Frame):
     
     def __init__(self, parent,data, callbacks, *args, **kwargs): 
@@ -399,7 +439,7 @@ class UserForm(tk.Frame):
         self.delete_btn.grid(column=2, row=7,columnspan=2,sticky="W")
         self.clear_btn.grid(column=2, row=7,  sticky="E",padx=2)
         #  ===== show list
-        self.page_label = Label(self, text='Reserve Detail')
+        self.page_label = Label(self, text='User Detail')
         self.page_label.grid(column=0, row=8, sticky="w")        
 
     def validate(self, P):
@@ -520,6 +560,7 @@ class UserTypeForm(tk.Frame):
         self.add_btn.grid(column=1, row=2,columnspan=2, sticky="W")
         self.delete_btn.grid(column=1, row=2,sticky="E")
         self.clear_btn.grid(column=2, row=2,  sticky="W",padx=2)
+        self.Header_label = Label(self, text='User Type detail:')
 
     def clear(self):
         self.title_var.set('')
@@ -579,12 +620,13 @@ class UserTypeForm(tk.Frame):
         try:
             if self.data != {}:
                 for key, record in self.data.items():
-                    self.Room_Table.insert('', 'end', iid=key, open=False, text='Room ID: {}'.format(key),
+                    self.Room_Table.insert('', 'end', iid=key, open=False, text='User type ID: {}'.format(key),
                                         values =[ record['id'], record['title']])   
         except Exception as e:
             messagebox.showerror(title='Error',message='The Show data not avaiable, Error is about{}',detail=str(e))
         else:
             return
+        
         finally:
             print('finall in fetch layout in init')
         
@@ -603,39 +645,25 @@ class SearchRoomForm(tk.Frame):
         # ===== Search box  =====  
         self.lbl_search = Label(self, width=20, text="Search By:") 
         self.__searchby_list = ttk.Combobox(self,takefocus=1, textvariable=self.search_by_var, state="readonly" )
-        self.__searchby_list['values']=('','RoomNumber','CountBedroom','Price[>=]YourEnter','Price[<=]YourEnter')
-        # self.__searchby_list.bind('<<ComboboxSelected>>', self._on_combo_change)
+        self.__searchby_list['values']=('','RoomNumber','CountBedroom','Price[>]YourEnter','Price[<]YourEnter')
         
-        self.lbl_search.grid(row=8, column=0, padx=4, sticky="w")
-        self.__searchby_list.grid(row=8, column=1,  sticky="w")
+        self.lbl_search.grid(row=0, column=0, padx=4, sticky="w")
+        self.__searchby_list.grid(row=0, column=1,  sticky="w")
         
         self.txt_search = Entry(self, validate = 'all',  validatecommand = (vcmd, '%P'), textvariable=self.search_txt_var, font=("times new roman", 13), bd=5, relief=GROOVE)
-        self.txt_search.grid(row=8, column=2,  sticky="w")
+        self.txt_search.grid(row=0, column=2,  sticky="w")
         self.searchbtn = Button(self, text="Search", width=8, command=self.callbacks['on_search_room_data'])
-        self.searchbtn.grid(row=8, column=3,  sticky="E")
-    
-    def validate(self, P):
-        if str.isdigit(P) or P == "":
-            return True
-        else:
-            return False
+        self.searchbtn.grid(row=0, column=3,  sticky="E")
+        self.header_label = Label(self, width=20, text="Search detail:") 
+        self.header_label.grid(row=1, column=0, padx=4, sticky="w")
         
-    def get(self)-> dict:
-        data = {
-            'searchby': self.search_by_var.get(),
-            'searchtext': self.search_txt_var.get()
-        }
-        return data
-        
-    def fetch_data(self,data):
-        self.data=data
         #=== Tree view Table 
-        print('==show to treeview==',self.data.items())
+        # print('==show to treeview==',self.data.items())
         scroll_x = Scrollbar(self, orient=HORIZONTAL)
         scroll_y = Scrollbar(self, orient=VERTICAL)
 
         self.Room_Tablex = ttk.Treeview(self, columns=("id","roomnumber", "countbedroom","price","descrition"), xscrollcommand = scroll_x.set, yscrollcommand = scroll_y.set)
-        self.Room_Tablex.grid(column=0, row=10, columnspan=6,sticky='w') 
+        self.Room_Tablex.grid(column=0, row=2, columnspan=6,sticky='w') 
                         
         scroll_x.config(command=self.Room_Tablex.xview)
         scroll_y.config(command=self.Room_Tablex.yview)
@@ -654,14 +682,34 @@ class SearchRoomForm(tk.Frame):
         self.Room_Tablex.column("#5", width=350)
         # self.Room_Table.pack(fill=BOTH, expand=1) #fill both is used to fill cols around the frame
         #to display data in grid
+    
+    def validate(self, P):
+        if str.isdigit(P) or P == "":
+            return True
+        else:
+            return False
+        
+    def get(self)-> dict:
+        data = {
+            'searchby': self.search_by_var.get(),
+            'searchtext': self.search_txt_var.get()
+        }
+        return data
+        
+    def fetch_data(self,data):
+        self.data=data
         try:
             if self.data != {}:
-                for key, record in self.data.items():
-                    self.Room_Tablex.insert('', 'end', iid=key, open=False, text='Room ID: {}'.format(key),
-                                        values =[ record['id'], record['roomnumber'], record['countbedroom'], record['price'], record['description']])   
+                print('%%%%',self.data)
+                
+                for row in self.data.all():
+                    self.Room_Tablex.insert('','end', iid=row, open=False, text='Room ID:{}'.format(row),
+                            values=[self.data.id, self.data.roomnumber, self.data.countbedroom, self.data.price, self.data.description] )
+                # for key, record in self.data.items():
+                #     self.Room_Tablex.insert('', 'end',iid=key, open=False, text='Room ID: {}'.format(key),
+                #     values =[ record['id'], record['roomnumber'], record['countbedroom'], record['price'], record['description']])   
         except Exception as e:
-            messagebox.showerror(title='Error',message='The Show data not avaiable, Error is about{}',detail=str(e))
-        else:
+            messagebox.showerror(title='Error',message='The Show data not avaiable, Error is about\n',detail=str(e))
             return
         finally:
             print('finall in fetch layout')

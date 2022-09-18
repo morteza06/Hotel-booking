@@ -20,7 +20,7 @@ class Application(tk.Tk):
         self._appconfig = AppConfig()
         self.settings = {}
         self.title('Hotel Booking ')
-        #   pattern=    postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
+        #   pattern= postgresql+psycopg2://user:password@host:port/dbname[?key=value&key=value...]
         global engine 
         engine = create_engine("postgresql://postgres:admin@localhost:5432/Booking", client_encoding="utf8",echo=True)
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -55,6 +55,9 @@ class Application(tk.Tk):
             'on_update_reserve': self.on_update_reserve,
             'on_delete_reserve': self.on_delete_reserve,
             'on_clear_reserve': self.on_clear_reserve,
+            'on_calc_reserve': self.on_calc_reserve,
+            'on_refresh_reserve_list': self.on_refresh_reserve_list,
+            
             
             # User page functionality
             'on_add_user': self.on_add_user,
@@ -108,7 +111,8 @@ class Application(tk.Tk):
         self.report_view_btn = ttk.Button(self.left_nav_frame,text='        Report     ',
                                           command=self.callbacks['open_report_view'])
         self.search_room_btn = ttk.Button(self.left_nav_frame,text='  Search Room ',
-                                          command=self.callbacks['open_search_room_form'])
+                                          command=self.callbacks['open_search_room_form'],
+                                          default='disabled')
         
         self.room_btn.grid(row=0, column=0, pady=2)
         self.reserve_btn.grid(row=1, column=0, pady=2)
@@ -175,7 +179,8 @@ class Application(tk.Tk):
                 self.room_form.clear()
         else: 
             messagebox.showinfo('Information','          Please Insert all fields  ')
-            
+            return   
+   
     def on_delete_room(self):
         data=self.room_form.get()
         id = data['id']
@@ -218,7 +223,8 @@ class Application(tk.Tk):
     def on_clear_room(self):
         self.room_form.clear()
     # } == Room callback Contorls 
-    
+    global room_list
+    room_list={}
     # handling  Reserve view,model    
     def open_reserve_form(self):
         if self.reserve_form is None:
@@ -230,27 +236,35 @@ class Application(tk.Tk):
                     self.callbacks
                 )
             self.reserve_form.fetch_data(data)
+            room_list = db.queries.qry_roomnumber_showall(session)
+            self.reserve_form.list_room_number(room_list)
+            
             self.reserve_form.grid(row=0, column=0, sticky='NSEW')
         else: 
             self.reserve_form.lift()
             
     # == Reserve callback Contorls {     
-    def on_add_reserve(self):
+    def on_add_reserve(self):  
         data = self.reserve_form.get()
-        if data['roomid'] and data['personid'] and data['startdate'] and data['enddate'] and data['pricesum']:
+        if data['roomnumber'] and data['personid'] and data['startdate'] and data['enddate'] and data['pricesum']:
             try:
                 with self.session_scope() as session:
-                    iid=db.forms.ReserveForm(session).add_reserve(data)
-                    self.reserve_form.add_row(idd)
+                    room_id = db.queries.qry_find_roomid_from_listroom(data['roomnumber'],session )#Show Form with combobox roomnumber and insert by id room
+                    idd=db.forms.ReserveForm(session).add_reserve(room_id, data)
+                    print('== idd ==', idd)
+                    self.reserve_form.set(room_id)
+                    data = db.queries.qry_reserve_part_show(idd,session)
+                    self.reserve_form.add_row(idd,data)
                 messagebox.showinfo('Information','     Record saved      ')
             except NameError:
                 messagebox.showinfo('Warning','Something went wrong')
         else: 
                 messagebox.showinfo('Warning','Please Insert all fields')
-            
+                return    
+    
     def on_delete_reserve(self):
         data=self.reserve_form.get()
-        id= data['id']
+        id= data['id']# need it check data[id] by  if id:
         try:
             with self.session_scope() as session:
                 db.forms.ReserveForm(session).delete_reserve(id)
@@ -263,6 +277,28 @@ class Application(tk.Tk):
     
     def on_clear_reserve(self):
         self.reserve_form.clear()
+    
+    def on_calc_reserve(self):
+        try:
+            data= self.reserve_form.get()
+            with self.session_scope() as session:
+                dicts = db.queries.qry_find_roomid_price_from_listroom(data['roomnumber'],session )#Show Form with combobox roomnumber and insert by id room
+                # find_id_price find id and price from room number and return by dict data keys=id and values=price
+                print('after query***')
+                price=int(dicts['price'])
+                room_id=dicts['id']
+                
+                print('=====',price,'++++',room_id)
+                self.reserve_form.sets(price,room_id)
+            if room_id and data['startdate'] and data['enddate']:
+                with self.session_scope() as session:
+                    self.reserve_form.show_sumprice(price)
+            else: 
+                messagebox.showinfo('Information','please Insert a Room Id,then start and end Date you have for Reservation.')
+        except Exception as e:
+            messagebox.showinfo('Information','Not found information record for this room Id.\n{}'.format(e))
+        else: 
+            return
     # == Reserve callback Contorls }
     
     # handling  User view,model    
@@ -294,6 +330,7 @@ class Application(tk.Tk):
                 messagebox.showinfo('Warning','Something went wrong')
         else: 
                 messagebox.showinfo('Warning','Please Insert all fields. ')
+                return
 
     def on_delete_user(self):
         data = self.user_form.get()
@@ -328,6 +365,7 @@ class Application(tk.Tk):
             self.usertype_form.grid(row=0, column=0, sticky='NSEW')
         else: 
             self.usertype_form.lift()
+            return
             
     # { == User callback Contorls
     def on_add_usertype(self):
@@ -342,13 +380,14 @@ class Application(tk.Tk):
                 messagebox.showinfo('Warning','Something went wrong')
         else: 
                 messagebox.showinfo('Warning','Please Insert all fields. ')
-
+                return
+    
     def on_delete_usertype(self):
         data = self.usertype_form.get()
         id= data['id']
         try:
             with self.session_scope() as session:
-                db.forms.UserTypeForm(session).delete_user(id)
+                db.forms.UserTypeForm(session).delete_usertype(id)
                 self.usertype_form.delete_row()
         except Exception as e:
             messagebox.showinfo(title='Information',message='Not deleted selected row.') 
@@ -369,36 +408,41 @@ class Application(tk.Tk):
             self.room_view.grid(row=0, column=0, sticky='NSEW')
         else:
             self.room_view.lift()
+    
+    def on_refresh_reserve_list(self):
+        with self.session_scope() as session:
+            self.room_view = gui.views.Room_View( 
+                        self.workspace_frame,
+                        db.queries.qry_room_view(session),
+                        self.callbacks
+                            )
+        return 
             
      #  == Search callback Contorls 
     def open_search_room_form(self):
-        
         data={}
         if self.search_room_form is None:
             with self.session_scope() as session:
                 self.search_room_form = gui.forms.SearchRoomForm(self.workspace_frame,data,self.callbacks)
-                # self.search_room_form.fetch_data(data)
+                self.search_room_form.fetch_data(data)
             self.search_room_form.grid(row=0, column=0, sticky='NSEW')
         else:
             self.search_room_form.lift()
             
     def on_search_room_data(self):
+        data= self.search_room_form.get()
         try:
-            data= self.search_room_form.get()
-            # data['searchby']=self.room_form.search_by_var.get()
-            # data['searchtext']=self.room_form.search_txt_var.get()
-            print('@@@',data['searchby'])
-            print('$$$',data['searchtext'])
-            with self.session_scope() as session:
-                self.search_room_form = gui.forms.SearchRoomForm(self.workspace_frame, data, self.callbacks)
-                data2 = db.forms.SearchRoomForm(self).search( data, session)
-            print('Dict==search===',data.items())
-            self.search_room_form.fetch_data(data2)
-                
+            if data['searchby'] and data['searchtext']:
+                with self.session_scope() as session:
+                    self.search_room_form = gui.forms.SearchRoomForm(self.workspace_frame, data, self.callbacks)
+                    data2 = db.forms.SearchRoomForm(self).search( data, session)
+                # print('Dict==search===',data2.items())
+                self.search_room_form.fetch_data(data2)
+                data2={}
+            else: 
+                messagebox.showinfo(title='search',message='Please Select search by and insert text for search.')
         except Exception as e:
             messagebox.showerror('Error','You have an error in main search. \n{e}'.format(e))
-        else:
-            messagebox.showinfo(title='search',message='search data done.')
             return
         finally:
             print('finally all search function comlete.')

@@ -1,3 +1,4 @@
+from distutils.cmd import Command
 from tkinter import ttk
 import tkinter as tk
 from . import widgets as w
@@ -9,9 +10,12 @@ from tkinter import *
 class Room_View(tk.Frame):
     def __init__(self, parent, data, callbacks, **kwargs):
         super().__init__(parent, **kwargs)
+        self.callbacks = callbacks
         self.data = data
         self.Header_label = Label(self, text='Room list that is reserve:')
         self.Header_label.grid( column=0, row=0,  sticky="nw")
+        self.refresh_btn= Button(self, text='   Refresh   ', command= self.callbacks['on_refresh_reserve_list'])
+        self.refresh_btn.grid( column=1, row=0,  sticky="E")
         
         columns = ('id','ًroomnumber', 'countbedroom', 'price','description', 'personid', 'startdate', 'enddate', 'pricesum')
         

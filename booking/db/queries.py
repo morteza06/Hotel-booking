@@ -87,6 +87,25 @@ def qry_reserve_showall(session):
         }
     return result
 
+def qry_reserve_part_show(iid,session):
+    query=None
+    result={}
+    query = session.query(
+        m.UserType.title.label('title'),
+        m.Person.name.label('name'),
+        m.Person.family.label('family'),
+        )
+    query = query.select_from(m.Reserve.id == int(iid)).join(m.Person).join(m.UserType)
+    result = {
+         row.roomid:
+                {
+                'title':row.title ,
+                'name':row.name ,
+                'family':row.family ,
+                } for row in query.first()
+        }
+    return result
+
 def qry_user_showall(session):
     query=None
     result={}
@@ -129,4 +148,27 @@ def qry_usertype_showall(session):
         }
     return result
 
+def qry_roomnumber_showall(session):
+    query=None
+    result={}
+    query = session.query(m.Room.roomnumber.label('roomnumber'),
+                            m.Room.id.label('id')).all()# list of data id , roomnumber
+    result = dict(query)#For indicate id and roomnumber by name, I used dictionary then i convert query to dict
+                        #I want recover Id from this dictionary for add new items to database because in combobox  just show roomnumber  and not id 
+    return result
 
+def qry_find_roomid_from_listroom( roomnumber ,session):
+    roomid=-1
+    roomid = session.query(m.Room.id.label('id')).filter(m.Room.roomnumber == roomnumber).first()
+    print('== room id==',roomid)
+    return roomid[0]
+
+def qry_find_roomid_price_from_listroom( roomnumber, session)->dict:
+    query=None
+    result={}
+    query = session.query(m.Room.id.label('id')  , m.Room.price.label('price')).\
+                            filter(m.Room.roomnumber == roomnumber).first()
+        
+    result= dict(query)
+    print('resutl',result.items())
+    return result
