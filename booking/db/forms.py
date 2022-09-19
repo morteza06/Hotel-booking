@@ -102,7 +102,7 @@ class ReserveForm(Form):
         
     def add_reserve(self,room_id,data):
         query =  m.Reserve( roomid= room_id , personid = data['personid'], \
-                            startdate= data['startdate'], enddate= data['enddate'], pricesum = data['pricesum'] )
+                            startdate = data['startdatetime'], enddate= data['enddatetime'], pricesum = data['pricesum'] )
         try:
             self.session.add(query)
             self.session.commit()
@@ -149,9 +149,9 @@ class UserForm(Form):
         self.data = data
         self.session = session
         
-    def add_user(self,data):
-        query =  m.Person( usertype= data['usertype'], personid = data['username'], \
-                            family= data['family'], email= data['email'], telephone = data['tel'] , \
+    def add_user(self,data,usertype_id):
+        query =  m.Person( user= usertype_id, name = data['name'], \
+                            family= data['family'], email= data['email'], tel = data['tel'] , \
                                 address = data['address'])
         try:
             self.session.add(query)

@@ -1,7 +1,6 @@
 from . import models as m
 # sample
 
-
 def qry_room_view(session):
     query = session.query(
         m.Room.id.label('id'),
@@ -66,8 +65,8 @@ def qry_reserve_showall(session):
         m.UserType.title.label('title'),
         m.Person.name.label('name'),
         m.Person.family.label('family'),
-        m.Reserve.startdate.label('startdate'),
-        m.Reserve.enddate.label('enddate'),
+        m.Reserve.startdate.label('startdatetime'),
+        m.Reserve.enddate.label('enddatetime'),
         m.Reserve.pricesum.label('pricesum'),
         )
     query = query.select_from(m.Room).join(m.Reserve).join(m.Person).join(m.UserType)
@@ -80,14 +79,14 @@ def qry_reserve_showall(session):
                 'title':row.title ,
                 'name':row.name ,
                 'family':row.family ,
-                'startdate':row.startdate,
-                'enddate': row.enddate,
+                'startdatetime':row.startdatetime,
+                'enddatetime': row.enddatetime,
                 'pricesum': row.pricesum
                 } for row in query.all()
         }
     return result
 
-def qry_reserve_part_show(iid,session):
+def qry_reserve_part_show(iid,session):# when new item add in add row any field that have relation and must be show this query gather them all
     query=None
     result={}
     query = session.query(
@@ -95,7 +94,7 @@ def qry_reserve_part_show(iid,session):
         m.Person.name.label('name'),
         m.Person.family.label('family'),
         )
-    query = query.select_from(m.Reserve.id == int(iid)).join(m.Person).join(m.UserType)
+    query = query.select_from(m.Reserve.id == iid).join(m.Person).join(m.UserType)
     result = {
          row.roomid:
                 {
@@ -135,10 +134,7 @@ def qry_user_showall(session):
 def qry_usertype_showall(session):
     query=None
     result={}
-    query = session.query(
-        m.UserType.id.label('id'),
-        m.UserType.title.label('title'),
-        )
+    query = session.query( m.UserType)
     query = query.select_from(m.UserType)
     result = {
          row.id:
@@ -147,6 +143,10 @@ def qry_usertype_showall(session):
                 } for row in query.all()
         }
     return result
+
+def qry_usertype_list(session):
+    query = session.query(m.UserType)
+    return {row.id: row.title for row in query.all()}
 
 def qry_roomnumber_showall(session):
     query=None
@@ -157,13 +157,13 @@ def qry_roomnumber_showall(session):
                         #I want recover Id from this dictionary for add new items to database because in combobox  just show roomnumber  and not id 
     return result
 
-def qry_find_roomid_from_listroom( roomnumber ,session):
+def qry_find_roomid_from_listroom( roomnumber ,session):#return 1 data
     roomid=-1
     roomid = session.query(m.Room.id.label('id')).filter(m.Room.roomnumber == roomnumber).first()
     print('== room id==',roomid)
     return roomid[0]
 
-def qry_find_roomid_price_from_listroom( roomnumber, session)->dict:
+def qry_find_roomid_price_from_listroom( roomnumber, session)->dict: #return 2 data
     query=None
     result={}
     query = session.query(m.Room.id.label('id')  , m.Room.price.label('price')).\

@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import tkinter as tk
 from tkinter import  *
 from tkinter import ttk, messagebox
+from datetime import datetime
 
 from .db.forms import RoomForm
 
@@ -26,7 +27,17 @@ class Application(tk.Tk):
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
         # At first run please create database Booking in to pgadmin4 then create database Schema by run this under command for create model 
-        # Base.metadata.create_all(engine)  
+        # { init_db=  when manipulate models needs to active this schema to database server
+        # self.Base=db.models.Base
+        # Base=declarative_base(self.Base)
+        # self.Base.metadata.create_all(engine)
+        # }
+        
+        # self.init_db()
+        # from sqlalchemy import event
+        # from sqlalchemy.schema import CreateSchema
+
+        # event.listen(Base.metadata, 'before_create', CreateSchema('my_schema'))
         
         self.callbacks = {
             # Menu option
@@ -69,6 +80,7 @@ class Application(tk.Tk):
             'on_add_usertype': self.on_add_usertype,
             'on_update_usertype': self.on_update_user,
             'on_clear_usertype': self.on_clear_usertype,
+            'on_delete_usertype': self.on_delete_usertype,
             
             'on_search_room_data': self.on_search_room_data,
             
@@ -135,7 +147,6 @@ class Application(tk.Tk):
         self.preferences_form_window = None
         self.preferences_form = None
         
-        
     @contextmanager
     def session_scope(self):
         session = self.Session()
@@ -148,8 +159,7 @@ class Application(tk.Tk):
             raise
         finally:
             session.close()
-    
-    # handling ROOM view,model
+
     def open_room_form(self):
         data={}
         if self.room_form is None:
@@ -244,14 +254,24 @@ class Application(tk.Tk):
             self.reserve_form.lift()
             
     # == Reserve callback Contorls {     
-    def on_add_reserve(self):  
+    def on_add_reserve(self):
+        self.reserve_form.start_time()
+        self.reserve_form.end_time()  
+        self.start_datetime =self.reserve_form.datetime_start()
+        self.end_datetime =self.reserve_form.datetime_end()
+        
         data = self.reserve_form.get()
-        if data['roomnumber'] and data['personid'] and data['startdate'] and data['enddate'] and data['pricesum']:
+        if data['roomnumber'] and data['personid'] and data['startdatetime'] and data['enddatetime'] and data['pricesum']:
+            
+            data['startdatetime']=  datetime.strptime(self.start_datetime,'%m/%d/%y %H:%M:%S')
+            data['enddatetime']=  datetime.strptime(self.end_datetime,'%m/%d/%y %H:%M:%S')
+            # print( 'start==',data['startdatetime'])
+            # print( 'end==',data['enddatetime'])
             try:
                 with self.session_scope() as session:
                     room_id = db.queries.qry_find_roomid_from_listroom(data['roomnumber'],session )#Show Form with combobox roomnumber and insert by id room
                     idd=db.forms.ReserveForm(session).add_reserve(room_id, data)
-                    print('== idd ==', idd)
+                    # print('== idd ==', idd)
                     self.reserve_form.set(room_id)
                     data = db.queries.qry_reserve_part_show(idd,session)
                     self.reserve_form.add_row(idd,data)
@@ -284,13 +304,10 @@ class Application(tk.Tk):
             with self.session_scope() as session:
                 dicts = db.queries.qry_find_roomid_price_from_listroom(data['roomnumber'],session )#Show Form with combobox roomnumber and insert by id room
                 # find_id_price find id and price from room number and return by dict data keys=id and values=price
-                print('after query***')
                 price=int(dicts['price'])
                 room_id=dicts['id']
-                
-                print('=====',price,'++++',room_id)
                 self.reserve_form.sets(price,room_id)
-            if room_id and data['startdate'] and data['enddate']:
+            if room_id and data['startdatetime'] and data['enddatetime']:
                 with self.session_scope() as session:
                     self.reserve_form.show_sumprice(price)
             else: 
@@ -300,8 +317,9 @@ class Application(tk.Tk):
         else: 
             return
     # == Reserve callback Contorls }
-    
-    # handling  User view,model    
+    # handling  User view,model 
+    global usertype_dict
+    usertype_dict={}   
     def open_user_form(self):
         data={}
         if self.user_form is None:
@@ -313,6 +331,9 @@ class Application(tk.Tk):
                     self.callbacks
                 )
             self.user_form.fetch_data(data)
+            self.usertype_dict = db.queries.qry_usertype_list(session)
+            self.user_form.list_usertype(self.usertype_dict)
+            
             self.user_form.grid(row=0, column=0, sticky='NSEW')
         else: 
             self.user_form.lift()
@@ -320,10 +341,12 @@ class Application(tk.Tk):
     # { == User callback Contorls  User is Person table
     def on_add_user(self):
         data = self.user_form.get()
-        if data['id'] and data['usertype'] and data['name'] and data['family'] and data['email'] and data['telephone'] and data['address']:
+        if data['usertype'] and data['name'] and data['family'] and data['email'] and data['tel'] and data['address']:
             try:
                 with self.session_scope() as session:
-                    iid=db.forms.UserForm(session).add_user(data)
+                    self.usertype_id=self.find_key(self.usertype_dict,data['usertype'])
+                    
+                    idd = db.forms.UserForm(session).add_user(data,  self.usertype_id)
                     self.user_form.add_row(idd)
                 messagebox.showinfo('Information','     Record saved      ')
             except NameError:
@@ -331,7 +354,10 @@ class Application(tk.Tk):
         else: 
                 messagebox.showinfo('Warning','Please Insert all fields. ')
                 return
-
+            
+    def find_key(self,input_dict, value):
+        return next((k for k, v in input_dict.items() if v == value), None)
+    
     def on_delete_user(self):
         data = self.user_form.get()
         id= data['id']
@@ -374,7 +400,7 @@ class Application(tk.Tk):
             try:
                 with self.session_scope() as session:
                     iid=db.forms.UserTypeForm(session).add_usertype(data)
-                    self.usertype_form.add_row(idd)
+                    self.usertype_form.add_row(iid)
                 messagebox.showinfo('Information','     Record saved      ')
             except NameError:
                 messagebox.showinfo('Warning','Something went wrong')

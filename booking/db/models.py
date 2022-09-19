@@ -1,9 +1,11 @@
 from tkinter import CASCADE
-from sqlalchemy import Column, Integer, String, DATE, \
+from sqlalchemy import Column, Integer, String, DATE,DateTime, \
      ForeignKey, DECIMAL, Numeric,Table
 from sqlalchemy.orm import  relationship
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref
+# from sqlalchemy.orm import registry
+from sqlalchemy.ext.declarative import declarative_base
+
 
 # TODO
 # 1-Validates data at each model. 
@@ -20,10 +22,9 @@ class Base(object):
     
     
 class_registry ={}
-Base = declarative_base(cls=Base, class_registry=class_registry)
+Base = declarative_base(cls=Base, class_registry=class_registry) #this is coustructor
 
-
-class UserType(Base): # Not delte 
+class UserType(Base): # Not delete 
     __tablename__ = 'UserType'
     id = Column('UserTypeID', Integer, primary_key=True) 
     title = Column(String(200))
@@ -35,7 +36,7 @@ class Access(Base):
     __tablename__ = 'Access'
     id = Column('AccessID', Integer, primary_key=True)
     type = Column('UserType_ID', Integer, ForeignKey('UserType.UserTypeID', ondelete='CASCADE')) 
-    id2 = Column('Page_ID', Integer, ForeignKey('Page.PageID'))
+    id2 = Column('Page_ID', Integer, ForeignKey('Page.PageID'))# Goal for authentication
     
     #help that is => https://stackoverflow.com/questions/5033547/sqlalchemy-cascade-delete
     UserType = relationship(UserType, backref= backref('Access', passive_deletes=True))
@@ -51,7 +52,7 @@ class Page(Base):
 class Person(Base): #User table
     __tablename__ = 'Person'
     id = Column('PersonID', Integer, primary_key=True)
-    user = Column ('UserType_ID',Integer, ForeignKey('UserType.UserTypeID', ondelete='ISNULL'))
+    user = Column ('UserType_ID',Integer, ForeignKey('UserType.UserTypeID', ondelete='CASCADE'))
     name = Column('UserName', String(200))
     family = Column('Family', String(200))
     email = Column('Email', String(100))
@@ -77,10 +78,10 @@ class Room(Base):
 class Reserve(Base):
     __tablename__ = 'Reserve'
     id = Column('ReserveID', Integer, primary_key=True)
-    roomid = Column('Room_ID', Integer, ForeignKey('Room.RoomID', ondelete='ISNULL',))
-    personid = Column('Person_ID', Integer, ForeignKey('Person.PersonID', ondelete='ISNULL'))
-    startdate = Column('StartDate', DATE)
-    enddate = Column('EndDate', DATE)
+    roomid = Column('Room_ID', Integer, ForeignKey('Room.RoomID', ondelete='DELETE',))
+    personid = Column('Person_ID', Integer, ForeignKey('Person.PersonID', ondelete='DELETE'))
+    startdate = Column('StartDate', DateTime)
+    enddate = Column('EndDate', DateTime)
     pricesum = Column('PriceSum', DECIMAL)
     
     room = relationship(Room, backref = backref('Reserve', passive_deletes=False))
