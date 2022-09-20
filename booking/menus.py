@@ -13,8 +13,14 @@ class MainMenu(tk.Menu):
 
         settings_menu = tk.Menu(self, tearoff=False)
         settings_menu.add_command(label='Preferences...', command=self.callbacks['settings--preferences'])
+        settings_menu.add_separator()
+        settings_menu.add_command(label='Create DataBase Schema in Server', command=self.callbacks['settings--createschema'])
         self.add_cascade(label='Settings', menu=settings_menu)
         
+        help_menu = tk.Menu(self, tearoff=False)
+        help_menu.add_command(label='Help',command=self.callbacks['help--help'])
+        help_menu.add_command(label='About',command=self.callbacks['help--about'])
+        self.add_cascade(label='Help', menu=help_menu)
         
 class Preferences(tk.Frame):
     def __init__(self, parent, callbacks, settings, **kwargs):

@@ -10,17 +10,32 @@ from tkinter import *
 class Room_View(tk.Frame):
     def __init__(self, parent, data, callbacks, **kwargs):
         super().__init__(parent, **kwargs)
+        self.master=parent
         self.callbacks = callbacks
         self.data = data
         self.Header_label = Label(self, text='Room list that is reserve:')
         self.Header_label.grid( column=0, row=0,  sticky="nw")
         self.refresh_btn= Button(self, text='   Refresh   ', command= self.callbacks['on_refresh_reserve_list'])
-        self.refresh_btn.grid( column=1, row=0,  sticky="E")
+        self.refresh_btn.grid( column=10, row=0,  sticky="E")
+   
+class Room_View_Modal(tk.Tk): #This class create top level frame. I needed because for new result or refresh viewtree in worksapce frame skiped and disabled
+    def __init__(self, parent, data, callbacks , **kwargs):
+        tk.Tk.__init__(self,parent, **kwargs)
+        self.callbacks = callbacks
+        self.data = data
+        
+        self.wm_attributes("-disabled", True)
+        self.toplevel_dialog = tk.Toplevel(self)
+        self.toplevel_dialog.minsize(800, 600)#form 300*100
+        self.toplevel_dialog.transient(self)
+        self.toplevel_dialog.protocol("WM_DELETE_WINDOW", self.Close_Toplevel)
+        self.toplevel_dialog_yes_button = ttk.Button(self.toplevel_dialog, text='Yes', command=self.Close_Toplevel)
+        self.toplevel_dialog_yes_button.pack(side='left', fill='x', expand=True)
+
         
         columns = ('id','ًroomnumber', 'countbedroom', 'price','description', 'personid', 'startdate', 'enddate', 'pricesum')
-        
-        self.treeview = ttk.Treeview(self, columns=columns, height=10,show='headings')
-        
+        self.treeview = ttk.Treeview(self.toplevel_dialog, columns=columns, height=10,show='headings')
+
         self.treeview.heading(column='#1', text=' ID ')
         self.treeview.column("#1", minwidth=0, width=30, stretch=False)
         
@@ -49,13 +64,21 @@ class Room_View(tk.Frame):
         self.treeview.column("#9", minwidth=0, width=130, stretch=False)
         
         # Layout
-        self.treeview.grid(row=1, column=0)
+        self.treeview.pack(side='left', fill='x', expand=True)
         self.load_records()
 
+    def Close_Toplevel(self):
+        # IMPORTANT!
+        self.wm_attributes("-disabled", False) # IMPORTANT!
+        self.toplevel_dialog.destroy()
+        # Possibly not needed, used to focus parent window again
+        self.deiconify() 
+    
     def load_records(self):
         print('data.items exists :',self.data.items())
         for key, record in self.data.items():
             self.treeview.insert('', 'end', iid=key, open=False, text='Room ID: {}'.format(key),
                                 values =[ record['id'], record['roomnumber'], record['countbedroom'], record['price'],\
-                                record['description'], record['personid'],  record['startdate'], record['enddate'], record['pricesum']])   
-   
+                                record['description'], record['personid'],  record['startdate'], record['enddate'], record['pricesum']])
+            
+            

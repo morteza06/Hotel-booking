@@ -1,4 +1,3 @@
-from gc import callbacks
 from tkinter import ttk
 import tkinter as tk
 

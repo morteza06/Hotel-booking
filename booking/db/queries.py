@@ -13,7 +13,6 @@ def qry_room_view(session):
         m.Reserve.enddate.label('enddate'),
         m.Reserve.pricesum.label('pricesum'),
         )
-    # query = query.select_from(m.Room)
     query = query.select_from(m.Room).join(m.Reserve)
     result = {
          row.id:
@@ -28,7 +27,6 @@ def qry_room_view(session):
                 'pricesum': row.pricesum ,
                 } for row in query.all()
         }
-    print('output view=====',result)
     return result
 
 def qry_room_showall(session):
@@ -86,25 +84,6 @@ def qry_reserve_showall(session):
         }
     return result
 
-def qry_reserve_part_show(iid,session):# when new item add in add row any field that have relation and must be show this query gather them all
-    query=None
-    result={}
-    query = session.query(
-        m.UserType.title.label('title'),
-        m.Person.name.label('name'),
-        m.Person.family.label('family'),
-        )
-    query = query.select_from(m.Reserve.id == iid).join(m.Person).join(m.UserType)
-    result = {
-         row.roomid:
-                {
-                'title':row.title ,
-                'name':row.name ,
-                'family':row.family ,
-                } for row in query.first()
-        }
-    return result
-
 def qry_user_showall(session):
     query=None
     result={}
@@ -148,6 +127,12 @@ def qry_usertype_list(session):
     query = session.query(m.UserType)
     return {row.id: row.title for row in query.all()}
 
+def qry_priceid_list(session):
+    query = session.query(m.Person.id)
+    # print('list personid',query)
+    return [row.id for row in query.all()]
+    
+
 def qry_roomnumber_showall(session):
     query=None
     result={}
@@ -160,7 +145,7 @@ def qry_roomnumber_showall(session):
 def qry_find_roomid_from_listroom( roomnumber ,session):#return 1 data
     roomid=-1
     roomid = session.query(m.Room.id.label('id')).filter(m.Room.roomnumber == roomnumber).first()
-    print('== room id==',roomid)
+    # print('== room id==',roomid)
     return roomid[0]
 
 def qry_find_roomid_price_from_listroom( roomnumber, session)->dict: #return 2 data

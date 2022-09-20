@@ -1,47 +1,14 @@
 from sqlalchemy import inspect, delete, update,select
 from . import models as m 
-"""" Gol of this desing
-    difine meta data ; model, fields, field_class   define some query
-"""
 from tkinter import  messagebox
-class Field:
-    def __init__(self,  label=None, value=None ):
-        self.label = label
-        self.value = value
-       
 
-class Form:
-    def __new__(cls, *args, **kwargs):
-        cls._fields = {}
-        for k, v in vars(cls).items():
-            if isinstance(v, Field):
-                cls._fields[k] = v
-        return super().__new__(cls)
-    
-    
-    @property
-    def fields(self)->dict:
-        f = {}
-        for key, field in self._fields.items():
-            f[key] = vars(field)
-        return f
+class RoomForm():
 
-
-class RoomForm(Form):
-    id = Field(label='id')
-    roomnumber = Field(label='roomnumber')
-    countbedroom = Field(label='countbedroom')
-    price = Field(label='price')
-    description = Field(label='description')
-    searchtext = Field(label='searchtext')
-    searchby = Field(label='searchby')
-     
     def __init__(self, session, data=None):
         self.data = data
         self.session = session
 
     def add_room(self,data):
-        print('Save in RoomAddFrom===========')
         query =  m.Room( roomnumber= data['roomnumber'], countbedroom = data['countbedroom'], \
                             price= data['price'], description= data['description'] )
         try:
@@ -89,12 +56,7 @@ class RoomForm(Form):
         finally:
             self.session.close()
        
-class ReserveForm(Form):
-    roomid = Field(label='roomid')
-    personid = Field(label='personid')
-    startdate = Field(label='startdate')
-    enddate = Field(label='enddate')
-    pricesum = Field(label='pricesum')
+class ReserveForm():
     
     def __init__(self, session, data=None):
         self.data = data
@@ -144,7 +106,8 @@ class ReserveForm(Form):
     def list_person_info(self):
         pass
 
-class UserForm(Form):
+class UserForm():
+  
     def __init__(self, session, data=None):
         self.data = data
         self.session = session
@@ -181,7 +144,7 @@ class UserForm(Form):
     def update_user(self):
         pass
  
-class UserTypeForm(Form):
+class UserTypeForm():
     def __init__(self, session , data=None):
         self.data = data
         self.session = session
@@ -217,42 +180,49 @@ class UserTypeForm(Form):
     def update_usertype(self):
         pass
     
-class SearchRoomForm(Form):
+class SearchRoomForm():
+    
     from tkinter import messagebox
-    def search(self, data, session):
+    def search(self, data, session)->dict: 
+        self.session = session
+        result=[]
+        query=None
         try:
-            self.data=data
-            Qsearch=""
-            print('search by===',self.data['searchby'])
-            print('search text===',self.data['searchtext'])
-            if self.data['searchby'] == '':
-                self.messagebox.showinfo('Information','Please Select type of search search ')
-            elif self.data['searchby'] == 'RoomNumber':
-                Qsearch = session.query(m.Room).filter(m.Room.roomnumber == self.data['searchtext'])
-            elif self.data['searchby'] == 'CountBedroom':
-                Qsearch = session.query(m.Room).filter(m.Room.countbedroom == self.data['searchtext'])
-            elif self.data['searchby'] == 'Price[>]YourEnter':
-                Qsearch = session.query(m.Room).filter(m.Room.price > self.data['searchtext'])
-            elif self.data['searchby'] == 'Price[<]YourEnter':
-                Qsearch = session.query(m.Room).filter(m.Room.price < self.data['searchtext'])
-            # print('**********',Qsearch)
-            # self.data = {
-            #     row.id:
-            #             {'id':row.id ,
-            #             'roomnumber':row.roomnumber ,
-            #             'countbedroom':row.countbedroom,
-            #             'price': row.price,
-            #             'description': row.description ,
-            #             } for row in Qsearch.all()
-            #     }
-            
+            self.data = data
+            searchby = self.data['searchby']
+            searchtext = self.data['searchtext']
+            if  searchby == '' and searchtext == '':
+                self.messagebox.showinfo('Information','Please select type of search and enter text search. ')
+            elif searchby == 'RoomNumber':
+                query = self.session.query(m.Room.id,m.Room.roomnumber,m.Room.countbedroom,m.Room.price,m.Room.description).filter(m.Room.roomnumber == searchtext)
+            elif  searchby == 'CountBedroom':
+                query = self.session.query(m.Room.id,m.Room.roomnumber,m.Room.countbedroom,m.Room.price,m.Room.description).filter(m.Room.countbedroom == searchtext)
+            elif  searchby == 'Price[>]YourEnter':
+                query = self.session.query(m.Room.id,m.Room.roomnumber,m.Room.countbedroom,m.Room.price,m.Room.description).filter(m.Room.price >searchtext)
+            elif searchby == 'Price[<]YourEnter':
+                query = self.session.query(m.Room.id,m.Room.roomnumber,m.Room.countbedroom,m.Room.price,m.Room.description).filter(m.Room.price < searchtext)
+            if query != None:
+                # result = query
+                # print(type(result))
+                    result={
+                        row.id:
+                            {'id':row.id ,
+                            'roomnumber':row.roomnumber ,
+                            'countbedroom':row.countbedroom ,
+                            'price':row.price ,
+                            'description':row.description ,
+                            } for row in query.all()
+                    }
+            else: 
+                result={}
             
         except Exception as e: 
-            messagebox.showerror(title='Error',message='Error in search data:\n',\
+            messagebox.showerror(title='Error' ,message='Error in search data:\n',\
                                 detail=str(e))
         else:
             messagebox.showinfo(title='Information',message='          Search complete.        ')
-            # print('==Search Done ==',self.data.items())
-            return Qsearch
+            print('==Search Done ==',result.items())
+            return result
         finally:
+            return result
             print('finally search data complete. ')
